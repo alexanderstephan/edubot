@@ -114,7 +114,7 @@ void collisionHandling(){
 
 String prepareHtmlPage(){  
 	String htmlPage =
-		String("")+"HTTP/1.1 200 OK\r\n") +
+		String("")+"HTTP/1.1 200 OK\r\n" +
             "Content-Type: text/html\r\n" +
             "Connection: close\r\n" +  // the connection will be closed after completion of the response
             "\r\n" +
