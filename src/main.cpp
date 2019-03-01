@@ -8,14 +8,14 @@
 #define MOTOR_A_ENABLE2 14
 #define MOTOR_A_SPEED 15
 
-#define MOTOR_B_ENABLE1 2
-#define MOTOR_B_ENABLE2 0
+#define MOTOR_B_ENABLE1 0                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+#define MOTOR_B_ENABLE2 2
 #define MOTOR_B_SPEED 12
 
 #define SERVO_PWM 13
 
-#define ECHO_PIN 4 
-#define TRIG_PIN 5
+#define ECHO_PIN 5 
+#define TRIG_PIN 4
 
 Servo servo1;
 
@@ -24,7 +24,7 @@ long a;
 
 String request;
 
-int maxSpeed = 200;
+int minimumSpeed = 200;
 int speedA = 512;
 int speedB = 511;
 
@@ -34,9 +34,13 @@ void getDistance(){
     a=sr04.Distance();
     Serial.print(a);
     Serial.println("cm");
+    delay(200);
 }
 
 void driveForward(){
+    Serial.println("--------------------");
+    Serial.println("Driving forward");
+    Serial.println("--------------------");
     digitalWrite(MOTOR_A_ENABLE1, LOW);
     digitalWrite(MOTOR_A_ENABLE2, HIGH);
     digitalWrite(MOTOR_B_ENABLE1, LOW);
@@ -54,6 +58,9 @@ void changeDirB(){
 }
 
 void driveBackward(){
+    Serial.println("--------------------");
+    Serial.println("Driving backwards");
+    Serial.println("--------------------");
     digitalWrite(MOTOR_A_ENABLE1, HIGH);
     digitalWrite(MOTOR_A_ENABLE2, LOW);
     digitalWrite(MOTOR_B_ENABLE1, HIGH);
@@ -72,17 +79,25 @@ void stopWheel(bool left){
 }
 
 void stopAll(){
+    Serial.println("--------------------");
+    Serial.println("Robot is stopping...");
+    Serial.println("--------------------");
     stopWheel(true);
     stopWheel(false);
+    
 }
 
 void turnLeft(){
+    Serial.println("Turning left");
     driveForward();
     changeDirA();
     delay(800);
 }
 
 void turnRight(){
+    Serial.println("--------------------");
+    Serial.println("Turning right");
+    Serial.println("--------------------");
     driveForward();
     changeDirB();
     delay(800);
@@ -101,6 +116,10 @@ void turnServo(){
 }
 
 void collisionHandling(){
+    Serial.println("--------------------");
+    Serial.println("Entering collison handling mode");
+    Serial.println("--------------------");
+
     if(sr04.Distance() < 10){
         driveBackward();
         delay(2000);
@@ -117,9 +136,12 @@ void collisionHandling(){
 }
 
 void driveSpiral() {
+    Serial.println("--------------------");
+    Serial.println("Driving a spiral");
+    Serial.println("--------------------");
     analogWrite(MOTOR_A_SPEED, speedA);
     analogWrite(MOTOR_B_SPEED, speedB);
-    if (speedB > maxSpeed) {
+    if (speedB > minimumSpeed) {
         speedB--; // Decrementing motor speed on one side for an increasingly sharper curvature
         analogWrite(MOTOR_A_SPEED, speedA);
         delay(150); // Wait a little so the curve is not too sharp
@@ -129,21 +151,17 @@ void driveSpiral() {
 
 String prepareHtmlPage(){  
 	String htmlPage =
-		String("")+"HTTP/1.1 200 OK\r\n" +
-            "Content-Type: text/html\r\n" +
-            "Connection: close\r\n" +  // the connection will be closed after completion of the response
-            "\r\n" +
-            "<!DOCTYPE HTML>" +
+		String("")+
             "<html>" +
             "<head>\n"+
             "\t<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js\"></script>\n"+
             "</head>"+
             "<center>"+
-            "<h1>Edubot early Access</h1>"+
+            "<h1>Edubot Early Access</h1>"+
             "<a href=\"/start\"><button>Start Engine</button></a>\t<a href=\"/stop\"><button>Stop Engine</button></a>\t  <a href=\"/auto\"><button>Auto-Mode</button></a><p>"+ //start, stop and auto button
             "Velocity:<input type=\"range\" min=\"-1024\" max=\"1024\" value=\"50\" class=\"slider\" id=\"myRange\" onchange=\"speedChanged(this.value)\"><p>"+ //Change speed
             "<a href=\"/left\"><button>Rotate 90 degrees left</button></a>\t<a href=\"/right\"><button>Rotate 90 degrees right</button></a>"+ //Change direction
-            "<a href=\"/spiral\"><button>Drive Spiral</button></a>\t"+
+            "\t<a href=\"/spiral\"><button>Drive Spiral</button></a>\t"+
             "</center>"+
             "<script>"+
                 "$.ajaxSetup({timeout:1000});\n"+
@@ -157,7 +175,7 @@ String prepareHtmlPage(){
 }
 
 void handleGet(){
-    if(server.args()>0){ //Check if there is an input
+    if(server.args()>0){ //Check wether there is an input
         if(server.hasArg("speed")){
             //Log current speed
             Serial.println(server.arg("speed"));
@@ -198,7 +216,7 @@ void handleNotFound(){
 
 void setup(){
     //Initialize serial port
-    Serial.begin(9600);
+    Serial.begin(115200);
 
      //Set all Motor Pins as outout
     pinMode(MOTOR_A_ENABLE1, OUTPUT);
@@ -209,11 +227,10 @@ void setup(){
     pinMode(MOTOR_B_SPEED, OUTPUT); 
 
     // Set default motor speed to 512
-    analogWrite(MOTOR_A_SPEED, 512);
-    analogWrite(MOTOR_B_SPEED, 512);
+    analogWrite(MOTOR_A_SPEED, speedA);
+    analogWrite(MOTOR_B_SPEED, speedB);
 
     ///Initialize Access Point
-    Serial.println("Test");
     WiFi.mode(WIFI_AP); //Access Point mode
     WiFi.softAP("edubot", "12345678");
     Serial.println("");
@@ -242,9 +259,11 @@ void setup(){
 
     // Initialize servo pin
     servo1.attach(13);
-    driveForward();
 }
 
 void loop() { 
-    server.handleClient(); //Handle requests
+    server.handleClient(); // Handle requests
+    getDistance();
+    delay(100); 
 }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
