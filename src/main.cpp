@@ -24,6 +24,10 @@ long a;
 
 String request;
 
+int maxSpeed = 200;
+int speedA = 512;
+int speedB = 511;
+
 ESP8266WebServer server(80);
 
 void getDistance(){
@@ -112,6 +116,17 @@ void collisionHandling(){
     }
 }
 
+void driveSpiral() {
+    analogWrite(MOTOR_A_SPEED, speedA);
+    analogWrite(MOTOR_B_SPEED, speedB);
+    if (speedB > maxSpeed) {
+        speedB--; // Decrementing motor speed on one side for an increasingly sharper curvature
+        analogWrite(MOTOR_A_SPEED, speedA);
+        delay(150); // Wait a little so the curve is not too sharp
+    }
+}
+
+
 String prepareHtmlPage(){  
 	String htmlPage =
 		String("")+"HTTP/1.1 200 OK\r\n" +
@@ -128,6 +143,7 @@ String prepareHtmlPage(){
             "<a href=\"/start\"><button>Start Engine</button></a>\t<a href=\"/stop\"><button>Stop Engine</button></a>\t  <a href=\"/auto\"><button>Auto-Mode</button></a><p>"+ //start, stop and auto button
             "Velocity:<input type=\"range\" min=\"-1024\" max=\"1024\" value=\"50\" class=\"slider\" id=\"myRange\" onchange=\"speedChanged(this.value)\"><p>"+ //Change speed
             "<a href=\"/left\"><button>Rotate 90 degrees left</button></a>\t<a href=\"/right\"><button>Rotate 90 degrees right</button></a>"+ //Change direction
+            "<a href=\"/spiral\"><button>Drive Spiral</button></a>\t"+
             "</center>"+
             "<script>"+
                 "$.ajaxSetup({timeout:1000});\n"+
@@ -217,6 +233,7 @@ void setup(){
     server.on("/auto",collisionHandling); 
     server.on("/left",turnLeft);
     server.on("/right",turnRight);
+    server.on("/spiral",driveSpiral);
     server.onNotFound(handleNotFound);
 
     //Start Server
