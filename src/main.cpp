@@ -3,6 +3,7 @@
 #include <SR04.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
+#include "edubot.h"
 
 #define MOTOR_A_ENABLE1 16 
 #define MOTOR_A_ENABLE2 14
@@ -17,6 +18,8 @@
 #define ECHO_PIN 5 
 #define TRIG_PIN 4
 
+#define defaultSpeed 512
+
 Servo servo1;
 
 SR04 sr04 = SR04(ECHO_PIN,TRIG_PIN);
@@ -25,8 +28,9 @@ long a;
 String request;
 
 int minimumSpeed = 200;
-int speedA = 512;
-int speedB = 511;
+
+int speedA = defaultSpeed;
+int speedB = defaultSpeed;
 
 ESP8266WebServer server(80);
 
@@ -87,13 +91,37 @@ void stopAll(){
     
 }
 
+void turnDegree(direction_t dir, int degree){ //todo
+
+}
+
+void turnTime(direction_t dir, int time){
+    driveForward();
+    Serial.println("--------------------");
+    if(dir==LEFT){
+        Serial.println("Turning left");
+        changeDirA();
+    }
+    else{
+        Serial.println("Turning right");
+        changeDirB();
+    }
+    Serial.println("--------------------");
+    delay(time);
+}
+
+
+// deprecated please do not use; use turnTime instead
 void turnLeft(){
+    Serial.println("--------------------");
     Serial.println("Turning left");
+    Serial.println("--------------------");
     driveForward();
     changeDirA();
     delay(800);
 }
 
+//deprecated please do not use; use turnTime instead
 void turnRight(){
     Serial.println("--------------------");
     Serial.println("Turning right");
@@ -139,11 +167,12 @@ void driveSpiral() {
     Serial.println("--------------------");
     Serial.println("Driving a spiral");
     Serial.println("--------------------");
-    analogWrite(MOTOR_A_SPEED, speedA);
-    analogWrite(MOTOR_B_SPEED, speedB);
+    analogWrite(MOTOR_A_SPEED, defaultSpeed);
+    analogWrite(MOTOR_B_SPEED, defaultSpeed);
     if (speedB > minimumSpeed) {
         speedB--; // Decrementing motor speed on one side for an increasingly sharper curvature
         analogWrite(MOTOR_A_SPEED, speedA);
+        analogWrite(MOTOR_A_SPEED, speedB);
         delay(150); // Wait a little so the curve is not too sharp
     }
 }
@@ -227,8 +256,8 @@ void setup(){
     pinMode(MOTOR_B_SPEED, OUTPUT); 
 
     // Set default motor speed to 512
-    analogWrite(MOTOR_A_SPEED, speedA);
-    analogWrite(MOTOR_B_SPEED, speedB);
+    analogWrite(MOTOR_A_SPEED, defaultSpeed);
+    analogWrite(MOTOR_B_SPEED, defaultSpeed);
 
     ///Initialize Access Point
     WiFi.mode(WIFI_AP); //Access Point mode
@@ -244,7 +273,7 @@ void setup(){
     Serial.println(WiFi.softAPIP());
     
     //Handle requests
-    server.on("/", HTTP_GET, handleGet);
+    server.on("/",HTTP_GET,handleGet);
     server.on("/start",driveForward);
     server.on("/stop",stopAll);
     server.on("/auto",collisionHandling); 
@@ -265,5 +294,4 @@ void loop() {
     server.handleClient(); // Handle requests
     getDistance();
     delay(100); 
-}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
