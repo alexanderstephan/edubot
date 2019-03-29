@@ -121,8 +121,6 @@ void turnLeft(){
     Serial.println("--------------------");
     Serial.println("Turning left");
     Serial.println("--------------------");
-    speedA = analogRead(MOTOR_A_SPEED);
-    speedB = analogRead(MOTOR_B_SPEED);
     driveForward();
     analogWrite(MOTOR_A_SPEED, defaultSpeed);
     analogWrite(MOTOR_B_SPEED, defaultSpeed);
