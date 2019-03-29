@@ -3,10 +3,10 @@
 
 typedef enum {LEFT, RIGHT} direction_t;
 
-/****utrasonic sensor****/
+/****Ultrasonic Sensor****/
 void getDistance();
 
-/****robot movement****/
+/****Robot Movement****/
 void driveForward();
 void changeDirA();
 void changeDirB();
@@ -21,7 +21,7 @@ void turnServo();
 void collisionHandling();
 void driveSpiral();
 
-/****server****/
+/****Server****/
 String prepareHtmlPage();
 void handleGet();
 void handleNotFound();
