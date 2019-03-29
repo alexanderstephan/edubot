@@ -6,6 +6,6 @@ The robot has the basic ability to be controlled manually as well as an obstacle
 
 ![Robot](https://raw.githubusercontent.com/alexanderstephan/edubot/master/bot.jpg)
 
-# This is my basic concept for schematic so far: (Pin positions may have changed over time)
+### This is my basic concept for schematic so far: (Pin positions may have changed over time)
 
 ![Schematic](https://raw.githubusercontent.com/alexanderstephan/edubot/master/edubot_bb.png)
