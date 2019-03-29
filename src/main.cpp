@@ -149,13 +149,14 @@ void turnServo(){
     int pos=90;
     for(pos=60; pos<=120; pos++) {
         servo1.write(pos);  
-        delay(5);   
+        delay(100);   
       }
 
     for(pos=120; pos>=60; pos--) {
         servo1.write(pos);
-        delay(5);
+        delay(100);
       }
+    delay(500);
 }
 
 void stopServo(){
@@ -166,8 +167,7 @@ void collisionHandling(){
     Serial.println("--------------------");
     Serial.println("Entering collison handling mode");
     Serial.println("--------------------");
-    if(sr04.Distance() < 10){
-        turnServo();
+    if(sr04.Distance() < 10){   
         driveBackward();
         delay(2000);
         stopAll();
@@ -180,6 +180,7 @@ void collisionHandling(){
         }
     else{
         driveForward();
+        turnServo();
     }
 }
 
