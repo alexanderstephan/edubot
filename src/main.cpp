@@ -115,8 +115,6 @@ void turnTime(direction_t dir, int time){
     delay(time);
 }
 */
-
-// deprecated please do not use; use turnTime instead
 void turnLeft(){
     Serial.println("--------------------");
     Serial.println("Turning left");
@@ -128,7 +126,6 @@ void turnLeft(){
     delay(800);
 }
 
-//deprecated please do not use; use turnTime instead
 void turnRight(){
     Serial.println("--------------------");
     Serial.println("Turning right");
