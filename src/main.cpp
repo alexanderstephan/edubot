@@ -8,7 +8,8 @@
 #define DEFAULT_SPEED 512
 #define SERVO_DEFAULT 90
 #define MINIMUM_SPEED 200
-#define ROTATION_ANGLE 30
+#define MAX_SPEED 1023
+#define ROTATION_ANGLE 20
 #define HOST "edubot"
 #define PASSWORD "12345678"
 
@@ -40,7 +41,6 @@ void driveForward(){
     Serial.println("--------------------");
     Serial.println("Driving forward");
     Serial.println("--------------------");
-    setDefaultSpeed();
     digitalWrite(MOTOR_A_ENABLE1, LOW);
     digitalWrite(MOTOR_A_ENABLE2, HIGH);
     digitalWrite(MOTOR_B_ENABLE1, LOW);
@@ -51,7 +51,6 @@ void driveBackward(){
     Serial.println("--------------------");
     Serial.println("Driving backwards");
     Serial.println("--------------------");
-
     digitalWrite(MOTOR_A_ENABLE1, HIGH);
     digitalWrite(MOTOR_A_ENABLE2, LOW);
     digitalWrite(MOTOR_B_ENABLE1, HIGH);
@@ -88,6 +87,8 @@ void stopAll(){
     // Set both motor pins on HIGH
     stopWheel(true);
     stopWheel(false);
+
+    return;
 }
 
 void turnDir(direction_t dir, int time){
@@ -97,9 +98,6 @@ void turnDir(direction_t dir, int time){
 
     // Make sure robot is driving forward
     driveForward();
-
-     // Ensure robot is not too fast for more precise turns
-    setDefaultSpeed();
 
     // If function argument equals LEFT, perform a right turn
     Serial.println("--------------------");
@@ -120,24 +118,20 @@ void turnDir(direction_t dir, int time){
 
     Serial.println("--------------------");
 
-    // Delay determines the angle
-    // delay(time);
-
-    //Restore prior speed 
-    analogWrite(MOTOR_A_SPEED, speedA);
-    analogWrite(MOTOR_B_SPEED, speedB);
 }
 
 void turnRight(){
     // Perform circa 180 degree right turn 
-    turnDir(RIGHT,800);
+    turnDir(RIGHT,500);
     stopAll();
+    return;
 }
 
 void turnLeft(){
     // Perform circa 180 degree right turn 
-    turnDir(LEFT,800);
+    turnDir(LEFT,500);
     stopAll();
+    return;
 }
 
 void turnServo(){
@@ -147,14 +141,15 @@ void turnServo(){
     // Rotate until rotation limit is reached
     for(pos=(SERVO_DEFAULT-ROTATION_ANGLE); pos<=(SERVO_DEFAULT+ROTATION_ANGLE); pos++) {
         servo1.write(pos);  
-        delay(100);   
+        delay(15);
       }
     // If limit is reached, count backwards
-    for(pos=(SERVO_DEFAULT+ROTATION_ANGLE); pos>=(SERVO_DEFAULT+ROTATION_ANGLE); pos--) {
+    for(pos=(SERVO_DEFAULT+ROTATION_ANGLE); pos>=(SERVO_DEFAULT-ROTATION_ANGLE); pos--) {
         servo1.write(pos);
-        delay(100);
+        delay(15);
       }
-    delay(500);
+      // Wait 1s between turns
+      delay(1000);
 }
 
 void initServo(){
@@ -170,17 +165,16 @@ void collisionHandling(){
     // If ultrasonic distance is less than 10 perform a obstacle avoidance routine, else proceed driving
     if(sr04.Distance() < 10){   
         driveBackward();
-        delay(2000);
+        delay(1000);
         stopAll();
         delay(500);
+        turnRight();
+        delay(500);
         driveForward();
-        changeDirA();
-        delay(2000);
-        driveForward();
-        initServo();
+        delay(500);
+        turnServo();
         }
     else{
-        turnServo();
         driveForward();
     }
 }
@@ -218,11 +212,12 @@ String prepareHtmlPage(){
     "<a href=\"forward\"><button>Drive</button></a><br>"+
     "<a href=\"left\"><button>Left</button></a>"+
     "<a href=\"right\"><button>Right</button></a><br>"+
-    "<a href=\"backward\"><button>Backwards</button></a><br>"+
+    "<a href=\"backwards\"><button>Drive Backwards</button></a><br>"+
     "<a href=\"spiral\"><button>Drive Spiral</button></a><br>"+
     "</center>"+
     "</body>"+
     "<script>"+
+    "$.ajaxSetup({timeout:1000});"+
     "function speedChanged(speed) {	$.get(\"?speed=\" + speed );}"+
     "</script>"+
     "</html>";
@@ -277,7 +272,7 @@ void setup(){
     Serial.begin(115200);
 
      // Initialize servo pin
-    servo1.attach(4);
+    servo1.attach(12);
 
      // Set all Motor Pins as outout
     pinMode(MOTOR_A_SPEED, OUTPUT);
@@ -305,7 +300,11 @@ void setup(){
     server.on("/left", turnLeft);
     server.on("/right",turnRight);
     server.on("/spiral",driveSpiral);
+    server.on("/backwards", driveBackward);
     server.onNotFound(handleNotFound);
+
+    analogWrite(MOTOR_A_SPEED, MAX_SPEED);
+    analogWrite(MOTOR_B_SPEED, MAX_SPEED);
 
     // Start Server
     server.begin();
