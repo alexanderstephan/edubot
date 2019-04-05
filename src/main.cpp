@@ -123,9 +123,9 @@ void turnDir(direction_t dir, int time){
     // Delay determines the angle
     // delay(time);
 
-    // Restore prior speed 
-    // analogWrite(MOTOR_A_SPEED, speedA);
-    // analogWrite(MOTOR_B_SPEED, speedB);
+    //Restore prior speed 
+    analogWrite(MOTOR_A_SPEED, speedA);
+    analogWrite(MOTOR_B_SPEED, speedB);
 }
 
 void turnRight(){
@@ -218,6 +218,7 @@ String prepareHtmlPage(){
     "<a href=\"forward\"><button>Drive</button></a><br>"+
     "<a href=\"left\"><button>Left</button></a>"+
     "<a href=\"right\"><button>Right</button></a><br>"+
+    "<a href=\"backward\"><button>Backwards</button></a><br>"+
     "<a href=\"spiral\"><button>Drive Spiral</button></a><br>"+
     "</center>"+
     "</body>"+
