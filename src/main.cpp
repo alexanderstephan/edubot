@@ -5,37 +5,30 @@
 #include <ESP8266WebServer.h>
 #include "edubot.h"
 
-#define MOTOR_A_ENABLE1 16 
-#define MOTOR_A_ENABLE2 14
-#define MOTOR_A_SPEED 15
-
-#define MOTOR_B_ENABLE1 0                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
-#define MOTOR_B_ENABLE2 2
-#define MOTOR_B_SPEED 12
-
-#define SERVO_PWM 13
-
-#define ECHO_PIN 5 
-#define TRIG_PIN 4
-
-#define defaultSpeed 512
+#define DEFAULT_SPEED 512
+#define SERVO_DEFAULT 90
+#define MINIMUM_SPEED 200
+#define ROTATION_ANGLE 30
+#define HOST "edubot"
+#define PASSWORD "12345678"
 
 Servo servo1;
 
 SR04 sr04 = SR04(ECHO_PIN,TRIG_PIN);
 long a;
 
-String request;
+int speedA = DEFAULT_SPEED;
+int speedB = DEFAULT_SPEED;
+int currentSpeed = 0; // Make a variable to store the current speed
 
-int minimumSpeed = 200;
+ESP8266WebServer server(80); // Start HTTP server at port 80
 
-int speedA = defaultSpeed;
-int speedB = defaultSpeed;
-int alteredSpeed = 0;
+void setDefaultSpeed(){
+    analogWrite(MOTOR_A_SPEED, DEFAULT_SPEED);
+    analogWrite(MOTOR_B_SPEED, DEFAULT_SPEED);
+}
 
-
-ESP8266WebServer server(80);
-
+// Read ultrasonic sensor in cm and print log
 void getDistance(){
     a=sr04.Distance();
     Serial.print(a);
@@ -47,8 +40,7 @@ void driveForward(){
     Serial.println("--------------------");
     Serial.println("Driving forward");
     Serial.println("--------------------");
-    analogWrite(MOTOR_A_SPEED, alteredSpeed);
-    analogWrite(MOTOR_B_SPEED, alteredSpeed);
+    setDefaultSpeed();
     digitalWrite(MOTOR_A_ENABLE1, LOW);
     digitalWrite(MOTOR_A_ENABLE2, HIGH);
     digitalWrite(MOTOR_B_ENABLE1, LOW);
@@ -66,6 +58,7 @@ void driveBackward(){
     digitalWrite(MOTOR_B_ENABLE2, LOW);
 }
 
+// Invert direction, default is wheel driving forward
 void changeDirA(){
     digitalWrite(MOTOR_A_ENABLE1, !digitalRead(MOTOR_A_ENABLE1));
     digitalWrite(MOTOR_A_ENABLE2, !digitalRead(MOTOR_A_ENABLE2));
@@ -91,77 +84,90 @@ void stopAll(){
     Serial.println("--------------------");
     Serial.println("Robot is stopping...");
     Serial.println("--------------------");
+
+    // Set both motor pins on HIGH
     stopWheel(true);
     stopWheel(false);
-    
-}
-/*
-void turnDegree(direction_t dir, int degree){ //todo
-
 }
 
-void turnTime(direction_t dir, int time){
+void turnDir(direction_t dir, int time){
+    // Read both motor speeds
+    speedA = analogRead(MOTOR_A_SPEED);
+    speedB = analogRead(MOTOR_B_SPEED);
+
+    // Make sure robot is driving forward
     driveForward();
+
+     // Ensure robot is not too fast for more precise turns
+    setDefaultSpeed();
+
+    // If function argument equals LEFT, perform a right turn
     Serial.println("--------------------");
     if(dir==LEFT){
         Serial.println("Turning left");
         changeDirA();
+        delay(time);
     }
-    else{
+    // If function argument is not LEFT, perform a right turn
+    else if(dir==RIGHT){
         Serial.println("Turning right");
         changeDirB();
+        delay(time);
     }
+    else{
+        Serial.println("Error reading direction!");
+    }
+
     Serial.println("--------------------");
-    delay(time);
-}
-*/
-void turnLeft(){
-    Serial.println("--------------------");
-    Serial.println("Turning left");
-    Serial.println("--------------------");
-    driveForward();
-    analogWrite(MOTOR_A_SPEED, defaultSpeed);
-    analogWrite(MOTOR_B_SPEED, defaultSpeed);
-    changeDirA();
-    delay(800);
+
+    // Delay determines the angle
+    // delay(time);
+
+    // Restore prior speed 
+    // analogWrite(MOTOR_A_SPEED, speedA);
+    // analogWrite(MOTOR_B_SPEED, speedB);
 }
 
 void turnRight(){
-    Serial.println("--------------------");
-    Serial.println("Turning right");
-    Serial.println("--------------------");
-    speedA = analogRead(MOTOR_A_SPEED);
-    speedB = analogRead(MOTOR_B_SPEED);
-    driveForward();
-    analogWrite(MOTOR_A_SPEED, 512);
-    analogWrite(MOTOR_B_SPEED, 512);
-    changeDirB();
-    delay(800);
-  
+    // Perform circa 180 degree right turn 
+    turnDir(RIGHT,800);
+    stopAll();
+}
+
+void turnLeft(){
+    // Perform circa 180 degree right turn 
+    turnDir(LEFT,800);
+    stopAll();
 }
 
 void turnServo(){
-    int pos=90;
-    for(pos=60; pos<=120; pos++) {
+    // Start rotation from the middle
+    int pos = SERVO_DEFAULT;
+
+    // Rotate until rotation limit is reached
+    for(pos=(SERVO_DEFAULT-ROTATION_ANGLE); pos<=(SERVO_DEFAULT+ROTATION_ANGLE); pos++) {
         servo1.write(pos);  
         delay(100);   
       }
-
-    for(pos=120; pos>=60; pos--) {
+    // If limit is reached, count backwards
+    for(pos=(SERVO_DEFAULT+ROTATION_ANGLE); pos>=(SERVO_DEFAULT+ROTATION_ANGLE); pos--) {
         servo1.write(pos);
         delay(100);
       }
     delay(500);
 }
 
-void stopServo(){
-    servo1.write(90);
+void initServo(){
+    // Set servo in a middle position
+    servo1.write(SERVO_DEFAULT);
 }
-
+// Obstacle avoidance mode
 void collisionHandling(){
     Serial.println("--------------------");
     Serial.println("Entering collison handling mode");
     Serial.println("--------------------");
+
+    // If ultrasonic distance is less than 10 perform a obstacle avoidance routine, else proceed driving
     if(sr04.Distance() < 10){   
         driveBackward();
         delay(2000);
@@ -171,21 +177,23 @@ void collisionHandling(){
         changeDirA();
         delay(2000);
         driveForward();
-        stopServo();
+        initServo();
         }
     else{
-        driveForward();
         turnServo();
+        driveForward();
     }
 }
 
+// Drive an increasingly steeper circle
 void driveSpiral() {
     Serial.println("--------------------");
     Serial.println("Driving a spiral");
     Serial.println("--------------------");
-    analogWrite(MOTOR_A_SPEED, defaultSpeed);
-    analogWrite(MOTOR_B_SPEED, defaultSpeed);
-    if (speedB > minimumSpeed) {
+
+    analogWrite(MOTOR_A_SPEED, DEFAULT_SPEED);
+    analogWrite(MOTOR_B_SPEED, DEFAULT_SPEED);
+    if (speedB > MINIMUM_SPEED) {
         speedB--; // Decrementing motor speed on one side for an increasingly sharper curvature
         analogWrite(MOTOR_A_SPEED, speedA);
         analogWrite(MOTOR_A_SPEED, speedB);
@@ -193,6 +201,7 @@ void driveSpiral() {
     }
 }
 
+// Fill HTML page in a string that will be sent to the server
 String prepareHtmlPage(){  
 	String htmlPage = String("")+
     "<!DOCTYPE HTML>"+
@@ -206,29 +215,33 @@ String prepareHtmlPage(){
     "<a href=\"auto\"><button>Auto-Mode</button></a><p>"+
     "<a href=\"stop\"><button>Stop Engine</button></a><br>"+
     "<h2 style=\"color:white\">Velocity:</h2><input type=\"range\" min=\"-1024\" max=\"1024\" value=\"50\" class=\"slider\" id=\"myRange\" onchange=\"speedChanged(this.value)\"><p>"+
-    "<a href=\"forward\"><button>Forward</button></a><br>"+
+    "<a href=\"forward\"><button>Drive</button></a><br>"+
     "<a href=\"left\"><button>Left</button></a>"+
     "<a href=\"right\"><button>Right</button></a><br>"+
     "<a href=\"spiral\"><button>Drive Spiral</button></a><br>"+
     "</center>"+
     "</body>"+
-    "<script>	$.ajaxSetup({timeout:5000});	function speedChanged(speed) {	$.get(\"?speed=\" + speed );    }</script>"+
+    "<script>"+
+    "function speedChanged(speed) {	$.get(\"?speed=\" + speed );}"+
+    "</script>"+
     "</html>";
     return htmlPage;
 }
 
 void handleGet(){
-    if(server.args()>0){ //Check wether there is an input
+    if(server.args()>0){ // Check wether there is an input
         if(server.hasArg("speed")){
-            //Log current speed
+            // Log current speed
             Serial.println(server.arg("speed"));
-            //Convert text to integer and set motor speed accordingly
-            alteredSpeed = abs(server.arg("speed").toInt());
-            analogWrite(MOTOR_A_SPEED, alteredSpeed);
-            analogWrite(MOTOR_B_SPEED, alteredSpeed); 
+
+            // Convert text to integer and set motor speed accordingly
+            currentSpeed = abs(server.arg("speed").toInt());
+            analogWrite(MOTOR_A_SPEED, currentSpeed);
+            analogWrite(MOTOR_B_SPEED, currentSpeed); 
             
-            if(server.arg("speed").toInt()<0){ //If the value is lower than zero then drive backwards
+            if(server.arg("speed").toInt()<0){ // If the value is lower than zero then drive backwards
                 driveBackward();
+                /* Make variable to store the current direction*/
             }
             else{
                 driveForward();
@@ -236,12 +249,12 @@ void handleGet(){
         }
     }
     else{
-        server.send(200, "text/html", prepareHtmlPage());
+        server.send(200, "text/html", prepareHtmlPage()); // Push HTML code
     }
 }
 
 void handleNotFound(){
-    //Print error in case something goes wrong
+    // Print error in case something goes wrong
     String message = "File Not Found\n\n";
     message += "URI: ";
     message += server.uri();
@@ -259,47 +272,41 @@ void handleNotFound(){
 }
 
 void setup(){
-    //Initialize serial port
+    // Initialize serial port
     Serial.begin(115200);
 
      // Initialize servo pin
-    servo1.attach(13);
+    servo1.attach(4);
 
-     //Set all Motor Pins as outout
+     // Set all Motor Pins as outout
+    pinMode(MOTOR_A_SPEED, OUTPUT);
     pinMode(MOTOR_A_ENABLE1, OUTPUT);
     pinMode(MOTOR_A_ENABLE2, OUTPUT);
-    pinMode(MOTOR_A_SPEED, OUTPUT);
+    
+    pinMode(MOTOR_B_SPEED, OUTPUT); 
     pinMode(MOTOR_B_ENABLE1, OUTPUT);
     pinMode(MOTOR_B_ENABLE2, OUTPUT);
-    pinMode(MOTOR_B_SPEED, OUTPUT); 
-
-    // Set default motor speed to 512
-    analogWrite(MOTOR_A_SPEED, defaultSpeed);
-    analogWrite(MOTOR_B_SPEED, defaultSpeed);
-
-    ///Initialize Access Point
-    WiFi.mode(WIFI_AP); //Access Point mode
-    WiFi.softAP("edubot", "12345678");
+    WiFi.softAP(HOST, PASSWORD);
     Serial.println("");
 
-    //Print IP adress
+    // Print IP adress
     Serial.println("");
     Serial.print("Name of Access Point is:");
     Serial.println("edubot");
     Serial.print("IP address: ");
     Serial.println(WiFi.softAPIP());
     
-    //Handle requests
+    // Handle GET requests
     server.on("/",HTTP_GET,handleGet);
     server.on("/forward",driveForward);
     server.on("/stop",stopAll);
     server.on("/auto",collisionHandling); 
-    server.on("/left",turnLeft);
+    server.on("/left", turnLeft);
     server.on("/right",turnRight);
     server.on("/spiral",driveSpiral);
     server.onNotFound(handleNotFound);
 
-    //Start Server
+    // Start Server
     server.begin();
     Serial.println("HTTP server started");
 }
