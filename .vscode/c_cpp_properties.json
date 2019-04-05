@@ -1,6 +1,12 @@
 {
-    "!!! WARNING !!!": "PLEASE DO NOT MODIFY THIS FILE! USE https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags",
     "configurations": [
+        {
+            "name": "!!! WARNING !!! AUTO-GENERATED FILE, PLEASE DO NOT MODIFY IT AND USE https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags",
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++17"
+        },
         {
             "name": "Linux",
             "includePath": [
@@ -9,10 +15,9 @@
                 "/home/alex/.platformio/packages/framework-arduinoespressif8266/cores/esp8266",
                 "/home/alex/.platformio/packages/framework-arduinoespressif8266/tools/sdk/lwip2/include",
                 "/home/alex/.platformio/packages/framework-arduinoespressif8266/variants/nodemcu",
-                "/home/alex/Downloads/edubot/lib/SR04",
+                "/home/alex/Documents/PlatformIO/Projects/edutest/lib/SR04",
                 "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/ESP8266WebServer/src",
                 "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/ESP8266WiFi/src",
-                "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/ESP8266mDNS",
                 "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/Servo/src",
                 "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/ArduinoOTA",
                 "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/DNSServer/src",
@@ -25,6 +30,7 @@
                 "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/ESP8266SSDP",
                 "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/ESP8266WiFiMesh/src",
                 "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/ESP8266httpUpdate/src",
+                "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/ESP8266mDNS/src",
                 "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/Ethernet/src",
                 "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/GDBStub/src",
                 "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/Hash/src",
@@ -37,8 +43,8 @@
                 "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/Wire",
                 "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/esp8266/src",
                 "/home/alex/.platformio/packages/tool-unity",
-                "/home/alex/Downloads/edubot/include",
-                "/home/alex/Downloads/edubot/src",
+                "/home/alex/Documents/PlatformIO/Projects/edutest/include",
+                "/home/alex/Documents/PlatformIO/Projects/edutest/src",
                 ""
             ],
             "browse": {
@@ -50,10 +56,9 @@
                     "/home/alex/.platformio/packages/framework-arduinoespressif8266/cores/esp8266",
                     "/home/alex/.platformio/packages/framework-arduinoespressif8266/tools/sdk/lwip2/include",
                     "/home/alex/.platformio/packages/framework-arduinoespressif8266/variants/nodemcu",
-                    "/home/alex/Downloads/edubot/lib/SR04",
+                    "/home/alex/Documents/PlatformIO/Projects/edutest/lib/SR04",
                     "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/ESP8266WebServer/src",
                     "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/ESP8266WiFi/src",
-                    "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/ESP8266mDNS",
                     "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/Servo/src",
                     "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/ArduinoOTA",
                     "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/DNSServer/src",
@@ -66,6 +71,7 @@
                     "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/ESP8266SSDP",
                     "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/ESP8266WiFiMesh/src",
                     "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/ESP8266httpUpdate/src",
+                    "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/ESP8266mDNS/src",
                     "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/Ethernet/src",
                     "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/GDBStub/src",
                     "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/Hash/src",
@@ -78,8 +84,8 @@
                     "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/Wire",
                     "/home/alex/.platformio/packages/framework-arduinoespressif8266/libraries/esp8266/src",
                     "/home/alex/.platformio/packages/tool-unity",
-                    "/home/alex/Downloads/edubot/include",
-                    "/home/alex/Downloads/edubot/src",
+                    "/home/alex/Documents/PlatformIO/Projects/edutest/include",
+                    "/home/alex/Documents/PlatformIO/Projects/edutest/src",
                     ""
                 ]
             },
@@ -93,8 +99,11 @@
                 "ICACHE_FLASH",
                 "ARDUINO=10805",
                 "ARDUINO_BOARD=\"PLATFORMIO_ESP12E\"",
+                "FLASHMODE_DIO",
                 "LWIP_OPEN_SRC",
                 "TCP_MSS=536",
+                "LWIP_FEATURES=1",
+                "LWIP_IPV6=0",
                 "VTABLES_IN_FLASH",
                 ""
             ],
