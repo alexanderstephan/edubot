@@ -156,6 +156,7 @@ void initServo(){
     // Set servo in a middle position
     servo1.write(SERVO_DEFAULT);
 }
+
 // Obstacle avoidance mode
 void collisionHandling(){
     Serial.println("--------------------");
@@ -163,19 +164,33 @@ void collisionHandling(){
     Serial.println("--------------------");
 
     // If ultrasonic distance is less than 10 perform a obstacle avoidance routine, else proceed driving
-    if(sr04.Distance() < 10){   
-        driveBackward();
-        delay(1000);
-        stopAll();
-        delay(500);
-        turnRight();
-        delay(500);
-        driveForward();
-        delay(500);
-        turnServo();
+    if(sr04.Distance < 0) {
+        if(sr04.Distance() <= 10.0){
+            // Wait if the sensor value stabilizes
+            stopAll();
+            delay(500);
+
+            // Perform a turning action until object is out of sight
+            turnRight();
+            }
+        else if(sr04.Distance() < 20.0){
+            turnServo(); // Make sure angle isn't tricking the sensor
+
+            // Make speed lower to give more accurate ultra sonic sensor measurements
+            analogWrite(MOTOR_A_SPEED, MINIMUM_SPEED); 
+            analogWrite(MOTOR_B_SPEED, MINIMUM_SPEED);
+            
+            driveForward();
         }
-    else{
-        driveForward();
+        else if (sr04.Distance() < 30.0){
+            analogWrite(MOTOR_A_SPEED, DEFAULT_SPEED);
+            analogWrite(MOTOR_B_SPEED, DEFAULT_SPEED);
+            driveForward();
+        }
+        else{
+            analogWrite(MOTOR_A_SPEED, MAX_SPEED);
+            analogWrite(MOTOR_B_SPEED, MAX_SPEED);
+            driveForward();
     }
 }
 
