@@ -12,3 +12,4 @@ The robot has the basic ability to be controlled manually as well as an obstacle
 - Adding a local jquer/AJAX file with SPLIFF
 - Fixing issue with random connection reset
 - Finishing the spiral routine
+- Adding 100nF capacitors to both gear motors
