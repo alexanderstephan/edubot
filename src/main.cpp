@@ -16,7 +16,7 @@
 Servo servo1;
 
 SR04 sr04 = SR04(ECHO_PIN,TRIG_PIN);
-long a;
+float a;
 
 int speedA = DEFAULT_SPEED;
 int speedB = DEFAULT_SPEED;
@@ -88,7 +88,6 @@ void stopAll(){
     stopWheel(true);
     stopWheel(false);
 
-    return;
 }
 
 void turnDir(direction_t dir, int time){
@@ -156,46 +155,59 @@ void initServo(){
     // Set servo in a middle position
     servo1.write(SERVO_DEFAULT);
 }
-
 // Obstacle avoidance mode
+
 void collisionHandling(){
     Serial.println("--------------------");
     Serial.println("Entering collison handling mode");
     Serial.println("--------------------");
+    float distance = sr04.Distance();
 
     // If ultrasonic distance is less than 10 perform a obstacle avoidance routine, else proceed driving
-    if(sr04.Distance < 0) {
-        if(sr04.Distance() <= 10.0){
+    if (distance > 0.0){
+        if (distance <= 10.0)
+        {
             // Wait if the sensor value stabilizes
             stopAll();
             delay(500);
-
             // Perform a turning action until object is out of sight
-            turnRight();
-            }
-        else if(sr04.Distance() < 20.0){
-            turnServo(); // Make sure angle isn't tricking the sensor
 
+            do {
+                distance = sr04.Distance();
+                delay(40);
+                turnRight();
+            } 
+            while (distance < 20.0);
+
+            turnServo(); // Make sure angle isn't tricking the sensor
+            delay(500);
+            initServo();
             // Make speed lower to give more accurate ultra sonic sensor measurements
             analogWrite(MOTOR_A_SPEED, MINIMUM_SPEED); 
             analogWrite(MOTOR_B_SPEED, MINIMUM_SPEED);
-            
             driveForward();
         }
-        else if (sr04.Distance() < 30.0){
+   
+        else if (distance < 30.0)
+        {
             analogWrite(MOTOR_A_SPEED, DEFAULT_SPEED);
             analogWrite(MOTOR_B_SPEED, DEFAULT_SPEED);
             driveForward();
         }
-        else{
+
+        else
+        {
             analogWrite(MOTOR_A_SPEED, MAX_SPEED);
             analogWrite(MOTOR_B_SPEED, MAX_SPEED);
             driveForward();
+        }
     }
+    delay(40);
 }
 
+
 // Drive an increasingly steeper circle
-void driveSpiral() {
+void driveSpiral(){
     Serial.println("--------------------");
     Serial.println("Driving a spiral");
     Serial.println("--------------------");
@@ -326,6 +338,6 @@ void setup(){
     Serial.println("HTTP server started");
 }
 
-void loop() { 
+void loop(){ 
     server.handleClient(); // Handle requests
 }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
