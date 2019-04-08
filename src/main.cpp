@@ -18,6 +18,8 @@ Servo servo1;
 SR04 sr04 = SR04(ECHO_PIN,TRIG_PIN);
 float a;
 
+bool autoEnabled=false;
+
 int speedA = DEFAULT_SPEED;
 int speedB = DEFAULT_SPEED;
 int currentSpeed = 0; // Make a variable to store the current speed
@@ -296,6 +298,10 @@ void handleNotFound(){
     server.send(404, "text/plain", message);
 }
 
+void setAuto(){
+	autoEnabled=true;
+}
+
 void setup(){
     // Initialize serial port
     Serial.begin(115200);
@@ -327,7 +333,7 @@ void setup(){
     server.on("/",HTTP_GET,handleGet);
     server.on("/forward",driveForward);
     server.on("/stop",stopAll);
-    server.on("/auto",collisionHandling); 
+    server.on("/auto",setAuto); 
     server.on("/left", turnLeft);
     server.on("/right",turnRight);
     server.on("/spiral",driveSpiral);
@@ -340,5 +346,8 @@ void setup(){
 }
 
 void loop(){ 
+    if(autoEnabled){
+      collisionHandling();
+    }
     server.handleClient(); // Handle requests
 }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
