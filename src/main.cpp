@@ -3,6 +3,7 @@
 #include <SR04.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
+#include <FS.h>
 #include "edubot.h"
 
 #define DEFAULT_SPEED 512
@@ -18,11 +19,20 @@ Servo servo1;
 SR04 sr04 = SR04(ECHO_PIN,TRIG_PIN);
 float a;
 
+bool autoEnabled=false;
+
 int speedA = DEFAULT_SPEED;
 int speedB = DEFAULT_SPEED;
 int currentSpeed = 0; // Make a variable to store the current speed
 
 ESP8266WebServer server(80); // Start HTTP server at port 80
+
+void setAuto(){
+	autoEnabled = !autoEnabled;
+    stopAll(); // Signaling mode change
+    setDefaultSpeed(); // Make sure roboto isn't moving with maximum speed
+    delay(300);
+}
 
 void setDefaultSpeed(){
     analogWrite(MOTOR_A_SPEED, DEFAULT_SPEED);
@@ -126,14 +136,14 @@ void turnDir(direction_t dir, int time){
 
 void turnRight(){
     // Perform circa 180 degree right turn 
-    turnDir(RIGHT,350);
-    server.send(204);
+    turnDir(RIGHT,500);
+    stopAll();
 }
 
 void turnLeft(){
     // Perform circa 180 degree right turn 
-    turnDir(LEFT,350);
-    server.send(204);
+    turnDir(LEFT,500);
+    stopAll();
 }
 
 void turnServo(){
@@ -158,8 +168,8 @@ void initServo(){
     // Set servo in a middle position
     servo1.write(SERVO_DEFAULT);
 }
-// Obstacle avoidance mode
 
+// Obstacle avoidance mode
 void collisionHandling(){
     float distance = sr04.Distance();
 
@@ -174,29 +184,28 @@ void collisionHandling(){
 
             do {
                 distance = sr04.Distance();
+                turnDir(RIGHT,100);
                 delay(40);
-                turnRight();
             } 
             while (distance < 20.0);
 
             //turnServo(); // Make sure angle isn't tricking the sensor
             delay(500);
-            initServo();
+            //initServo();
+
             // Make speed lower to give more accurate ultra sonic sensor measurements
             analogWrite(MOTOR_A_SPEED, MINIMUM_SPEED); 
             analogWrite(MOTOR_B_SPEED, MINIMUM_SPEED);
             driveForward();
         }
    
-        else if (distance < 30.0)
-        {
+        else if (distance < 30.0){
             analogWrite(MOTOR_A_SPEED, DEFAULT_SPEED);
             analogWrite(MOTOR_B_SPEED, DEFAULT_SPEED);
             driveForward();
         }
 
-        else
-        {
+        else{
             analogWrite(MOTOR_A_SPEED, MAX_SPEED);
             analogWrite(MOTOR_B_SPEED, MAX_SPEED);
             driveForward();
@@ -240,7 +249,7 @@ String prepareHtmlPage(){
     "<h2 style=\"color:white\">Velocity:</h2><input type=\"range\" min=\"0\" max=\"1024\" value=\"50\" class=\"slider\" id=\"myRange\" onchange=\"speedChanged(this.value)\"><p>"+
     "<a href=\"stop\"><button>Stop Engine</button></a><br>"+
     "<a href=\"auto\"><button>Auto-Mode</button></a><p>"+
-    //"<a href=\"spiral\"><button>Drive Spiral</button></a><br>"+
+    "<a href=\"spiral\"><button>Drive Spiral</button></a><br>"+
     "</center>"+
     "</body>"+
     "<script>"+
@@ -322,12 +331,12 @@ void setup(){
     Serial.println("edubot");
     Serial.print("IP address: ");
     Serial.println(WiFi.softAPIP());
-
+    
     // Handle GET requests
     server.on("/",HTTP_GET,handleGet);
     server.on("/forward",driveForward);
     server.on("/stop",stopAll);
-    server.on("/auto",collisionHandling); 
+    server.on("/auto",setAuto); 
     server.on("/left", turnLeft);
     server.on("/right",turnRight);
     server.on("/spiral",driveSpiral);
@@ -340,5 +349,12 @@ void setup(){
 }
 
 void loop(){ 
-    server.handleClient(); // Handle requests
-}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+    //server.handleClient();
+    if(autoEnabled){
+        server.handleClient();
+        collisionHandling();
+    }
+    else if(!autoEnabled){ 
+        server.handleClient(); // Handle requests
+    }
+} 
