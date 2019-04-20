@@ -233,30 +233,15 @@ void driveSpiral(){
 
 // Fill HTML page in a string that will be sent to the server
 String prepareHtmlPage(){  
-	String htmlPage = String("")+
-    "<!DOCTYPE HTML>"+
-    "<html>"+
-    "<head>"+
-    "<meta charset=\"utf-8\"/>"+
-    "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js\"></script>	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">	<style>	@import url('https://fonts.googleapis.com/css?family=Roboto');	html {font-family: 'roboto', sans-serif; text-transform: uppercase;}	body {background-color: #fdd835}	button{ background-color: #4CAF50; border: none; color: white; padding: 15px 32px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin-left: 10px; margin-right: 10px; margin-top: 20px; margin-bottom: 20px;}	</style></head>"+
-    "<body>"+
-    "<center>"+
-    "<h1 style=\"color:white; font-size: 30px\";>Edubot</h1>"+
-    "<a href=\"forward\"><button>Forward</button></a><br>"+
-    "<a href=\"left\"><button>Left</button></a>"+
-    "<a href=\"right\"><button>Right</button></a><br>"+
-    "<a href=\"backwards\"><button>Backward</button></a><br>"+
-    "<h2 style=\"color:white\">Velocity:</h2><input type=\"range\" min=\"0\" max=\"1024\" value=\"50\" class=\"slider\" id=\"myRange\" onchange=\"speedChanged(this.value)\"><p>"+
-    "<a href=\"stop\"><button>Stop Engine</button></a><br>"+
-    "<a href=\"auto\"><button>Auto-Mode</button></a><p>"+
-    "<a href=\"spiral\"><button>Drive Spiral</button></a><br>"+
-    "</center>"+
-    "</body>"+
-    "<script>"+
-    "$.ajaxSetup({timeout:1000});"+
-    "function speedChanged(speed) {	$.get(\"?speed=\" + speed );}"+
-    "</script>"+
-    "</html>";
+    String htmlPage;
+    File f = SPIFFS.open("/edubot.html","r");
+    if (!f) {
+        Serial.println("Error reading file!");
+    } else {
+        htmlPage = f.readString();
+        Serial.println("Reading file succesfully!");
+    }
+    f.close();
     return htmlPage;
 }
 
@@ -308,6 +293,9 @@ void handleNotFound(){
 void setup(){
     // Initialize serial port
     Serial.begin(115200);
+
+    // Start file system
+    SPIFFS.begin();
 
      // Initialize servo pin
     servo1.attach(12);
