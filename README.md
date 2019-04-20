@@ -6,6 +6,8 @@ The robot has the basic ability to be controlled manually as well as an obstacle
 
 ![Robot](https://raw.githubusercontent.com/alexanderstephan/edubot/master/bot.jpg)
 
+
+
 ### Wiring
 ![Schematic](https://raw.githubusercontent.com/alexanderstephan/edubot/master/edubot_bb.png)
 ## To do list
