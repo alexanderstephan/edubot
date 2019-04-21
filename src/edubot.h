@@ -6,16 +6,16 @@
 #define MOTOR_A_ENABLE1 2 // in1
 #define MOTOR_A_ENABLE2 0  // in2
 
-#define MOTOR_B_SPEED 12  // enB
+#define MOTOR_B_SPEED 15  // enB
 #define MOTOR_B_ENABLE1 5  // in3                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
 #define MOTOR_B_ENABLE2 4  // in42
  
 /* Servo pin */
-#define SERVO_PWM 4
+#define SERVO_PWM 12
 
 /* Ultrasonic sensor pins */
-#define ECHO_PIN 13
-#define TRIG_PIN 12
+#define ECHO_PIN 14
+#define TRIG_PIN 16
 
 typedef enum {LEFT, RIGHT} direction_t;
 
@@ -23,6 +23,7 @@ typedef enum {LEFT, RIGHT} direction_t;
 void getDistance();
 
 /* Robot movement */
+void setAuto();
 void setDefaultSpeed();
 void initServo();
 void driveForward();
@@ -44,3 +45,4 @@ void handleGet();
 void handleNotFound();
 
 #endif //EDUBOT_EDUBOT_H
+
