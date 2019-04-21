@@ -1,7 +1,7 @@
 ### EDUBOT
 ## A Robot For Use In Education
 
-# Table of Contents
+## Table of Contents
 1. [Overview](#Overview)
 2. [How To Build](#how-to-build)
 3. [Wiring](#Wiring)
