@@ -4,6 +4,7 @@
 1. [Overview](#Overview)
 2. [How To Build](#how-to-build)
 3. [Wiring](#Wiring)
+4. [To Do List](#to-do-list)
 
 # Overview
 I started the project as a project paper for my school. The acrylic chassis is from watterott.com and has a nice corresponding book from Markus Knapp called 'Building Robots With Arduino'. 
@@ -19,6 +20,7 @@ The robot has the basic ability to be controlled manually as well as an obstacle
 
 # Wiring
 ![Schematic](https://raw.githubusercontent.com/alexanderstephan/edubot/master/edubot_bb.png)
+
 # To do list
 - ~~Adding a local jquery/AJAX file with SPLIFF~~
 - ~~Fixing issue with random connection reset~~
