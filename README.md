@@ -8,7 +8,7 @@ The robot has the basic ability to be controlled manually as well as an obstacle
 
 ## How To Build
 
--`git clone https://github.com/alexanderstephan/edubot.git`
+- `git clone https://github.com/alexanderstephan/edubot.git`
 - Install [PlatformIO Core](https://docs.platformio.org/en/latest/core.html) i.e. via [AUR](https://aur.archlinux.org/packages/platformio-git/) on Arch Linux
 - `cd edubot && platformio run` (You can specify upload_port in platform.ini)
 
