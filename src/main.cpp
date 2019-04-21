@@ -56,7 +56,6 @@ void driveForward(){
     digitalWrite(MOTOR_A_ENABLE2, HIGH);
     digitalWrite(MOTOR_B_ENABLE1, LOW);
     digitalWrite(MOTOR_B_ENABLE2, HIGH);
-    server.send(204);
 }
 
 void driveBackward(){
@@ -67,7 +66,6 @@ void driveBackward(){
     digitalWrite(MOTOR_A_ENABLE2, LOW);
     digitalWrite(MOTOR_B_ENABLE1, HIGH);
     digitalWrite(MOTOR_B_ENABLE2, LOW);
-    server.send(204);
 }
 
 // Invert direction, default is wheel driving forward
@@ -100,10 +98,6 @@ void stopAll(){
     // Set both motor pins on HIGH
     stopWheel(true);
     stopWheel(false);
-
-    //server.sendHeader("Location", "/");
-    server.send(204);
-
 }
 
 void turnDir(direction_t dir, int time){
@@ -228,7 +222,6 @@ void driveSpiral(){
         analogWrite(MOTOR_A_SPEED, speedB);
         delay(150); // Wait a little so the curve is not too sharp
     }
-    server.send(204);
 }
 
 
@@ -342,13 +335,41 @@ void setup(){
     server.serveStatic("/jquery.min.js", SPIFFS, "/jquery.min.js");
 
     // Handle controls
-    server.on("/forward",driveForward);
-    server.on("/stop",stopAll);
-    server.on("/auto",setAuto); 
-    server.on("/left", turnLeft);
-    server.on("/right",turnRight);
-    server.on("/spiral",driveSpiral);
-    server.on("/backwards", driveBackward);
+    server.on("/forward", []() {
+        driveForward();
+        server.send(204);
+    });
+
+    server.on("/stop",[]() {
+        stopAll();
+        server.send(204);
+    });
+
+    server.on("/auto", []() {
+        setAuto();
+        server.send(204);
+    });
+
+    server.on("/left", []() {
+        turnLeft();
+        server.send(204);
+    });
+
+    server.on("/right",[]() {
+        turnRight();
+        server.send(204);
+     });
+
+    server.on("/spiral",[]() {
+        driveSpiral();
+        server.send(204);
+    });
+
+    server.on("/backwards", []() {
+        driveBackward();
+        server.send(204);
+    });
+
     server.onNotFound(handleNotFound);
 
     // Start Server
