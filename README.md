@@ -11,7 +11,9 @@ The robot has the basic ability to be controlled manually as well as an obstacle
 ### Wiring
 ![Schematic](https://raw.githubusercontent.com/alexanderstephan/edubot/master/edubot_bb.png)
 ## To do list
-- Adding a local jquer/AJAX file with SPLIFF
-- Fixing issue with random connection reset
+- ~~Adding a local jquery/AJAX file with SPLIFF~~
+- ~~Fixing issue with random connection reset~~
 - ~~Finishing the spiral routine~~
+- Make "Auto-Mode" button show current mode
+- Make turning movements smoother
 - Adding 100nF capacitors to both gear motors
