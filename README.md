@@ -16,4 +16,5 @@ The robot has the basic ability to be controlled manually as well as an obstacle
 - ~~Finishing the spiral routine~~
 - Make "Auto-Mode" button show current mode
 - Make turning movements smoother
-- Adding 100nF capacitors to both gear motors
+- Add 100nF capacitors to both gear motors
+- Add resistor to ultra sonic sensor
