@@ -231,18 +231,28 @@ void driveSpiral(){
     server.send(204);
 }
 
-// Fill HTML page in a string that will be sent to the server
-String prepareHtmlPage(){  
-    String htmlPage;
-    File f = SPIFFS.open("/edubot.html","r");
-    if (!f) {
-        Serial.println("Error reading file!");
-    } else {
-        htmlPage = f.readString();
-        Serial.println("Reading file succesfully!");
-    }
-    f.close();
-    return htmlPage;
+
+String prepareHtmlPage(){
+        // Init string
+        String htmlPage;
+
+        // Open file
+        File f = SPIFFS.open("/edubot.html","r");
+
+        // Prevent error
+        if (!f) {
+            Serial.println("Error reading .html file!");
+        } 
+
+        // Read file into string
+        else {
+            htmlPage = f.readString();
+            Serial.println("Reading files succesfully!");
+        }
+
+        // Close file
+        f.close();
+        return htmlPage;
 }
 
 void handleGet(){
@@ -268,6 +278,8 @@ void handleGet(){
         }
     }
     else{
+      
+        // Send files to server
         server.send(200, "text/html", prepareHtmlPage()); // Push HTML code
     }
 }
@@ -308,8 +320,11 @@ void setup(){
     pinMode(MOTOR_B_SPEED, OUTPUT); 
     pinMode(MOTOR_B_ENABLE1, OUTPUT);
     pinMode(MOTOR_B_ENABLE2, OUTPUT);
-
+    
+    // Use access point mode
     WiFi.mode(WIFI_AP);
+
+    // Define its name and password
     WiFi.softAP(HOST, PASSWORD);
     Serial.println("");
 
@@ -320,8 +335,13 @@ void setup(){
     Serial.print("IP address: ");
     Serial.println(WiFi.softAPIP());
     
-    // Handle GET requests
+    // Handle server requests
     server.on("/",HTTP_GET,handleGet);
+
+    server.serveStatic("/main.css", SPIFFS, "/main.css");
+    server.serveStatic("/jquery.min.js", SPIFFS, "/jquery.min.js");
+
+    // Handle controls
     server.on("/forward",driveForward);
     server.on("/stop",stopAll);
     server.on("/auto",setAuto); 
@@ -342,6 +362,7 @@ void loop(){
         server.handleClient();
         collisionHandling();
     }
+
     else if(!autoEnabled){ 
         server.handleClient(); // Handle requests
     }
