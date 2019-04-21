@@ -1,5 +1,4 @@
-### EDUBOT
-## A Robot For Use In Education
+### A Robot For Use In Education
 
 ## Table of Contents
 1. [Overview](#Overview)
