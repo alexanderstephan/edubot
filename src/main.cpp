@@ -344,7 +344,7 @@ void setup() {
                 else if (error == OTA_END_ERROR) Serial.println("End Failed");
         });
     }
-    
+
     ArduinoOTA.begin();
 
     if (debugLevel > 1) {
