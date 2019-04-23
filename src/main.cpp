@@ -167,7 +167,7 @@ void collisionHandling() {
     driveForward();
     // If ultrasonic distance is less than 10 perform a obstacle avoidance routine, else proceed driving
     if (distance > 0.0) {
-        if (distance <= 8.0) {
+        if (distance <= 10.0) {
             // Wait if the sensor value stabilizes
             stopAll();
             delay(500);
@@ -181,7 +181,7 @@ void collisionHandling() {
             while (distance < 15.0);
         }
    
-        else if (distance < 25.0) {
+        else if (distance < 30.0) {
             analogWrite(MOTOR_A_SPEED, DEFAULT_SPEED);
             analogWrite(MOTOR_B_SPEED, DEFAULT_SPEED);
             driveForward();
@@ -203,10 +203,10 @@ void driveSpiral() {
     Serial.println("--------------------");
 
     if (dState.speedB > MINIMUM_SPEED) {
-        dState.speedB--; // Decrementing motor speed on one side for an increasingly sharper curvature
+        dState.speedB--;                                // Decrementing motor speed on one side for an increasingly sharper curvature
         analogWrite(MOTOR_A_SPEED, dState.speedA);
         analogWrite(MOTOR_A_SPEED, dState.speedB);
-        delay(150); // Wait a little so the curve is not too sharp
+        delay(150);                                     // Wait a little so the curve is not too sharp
     }
 }
 
@@ -217,18 +217,18 @@ String prepareHtmlPage() {
 
         // Open file
         File f = SPIFFS.open("/edubot.html","r");
-
         // Prevent error
+    
         if (!f) {
             Serial.println("Error reading .html file!");
-        } 
-
+        }
+    
         // Read file into string
         else {
             htmlPage = f.readString();
             Serial.println("Reading files succesfully!");
         }
-
+    
         // Close file
         f.close();
         return htmlPage;
@@ -280,7 +280,7 @@ void setup() {
      // Initialize servo pin
     servo1.attach(12);
 
-     // Set all Motor Pins as outout
+     // Set all motor pins as outout
     pinMode(MOTOR_A_SPEED, OUTPUT);
     pinMode(MOTOR_A_ENABLE1, OUTPUT);
     pinMode(MOTOR_A_ENABLE2, OUTPUT);
@@ -371,5 +371,4 @@ void loop() {
         Serial.println("Unregistered Mode!");
             break;
     }
-
 } 
