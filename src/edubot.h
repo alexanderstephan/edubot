@@ -17,13 +17,14 @@
 #define ECHO_PIN 14
 #define TRIG_PIN 16
 
-typedef enum {LEFT, RIGHT, FORWARD, BACKWARD} direction_t;
+typedef enum {LEFT, RIGHT, FORWARD, BACKWARD, NONE} direction_t;
 typedef enum {AUTO, SPIRAL, IDLE} drivingMode_t;
 
 /* Ultrasonic sensor */
 void getDistance();
 
 /* Robot movement */
+void getDirection(direction_t);
 void setMode(drivingMode_t alteredMode);
 void setDefaultSpeed();
 void initServo();

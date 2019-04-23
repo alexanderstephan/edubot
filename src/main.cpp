@@ -20,16 +20,20 @@ Servo servo1;
 SR04 sr04 = SR04(ECHO_PIN,TRIG_PIN);
 
 drivingState_t dState = {
-    FORWARD,
+    NONE,
     DEFAULT_SPEED,
     DEFAULT_SPEED,
     IDLE
 };
 
-int currentSpeed = 0; // Make a variable to store the current speed
 int debugLevel = DEBUG_LEVEL;
+
+int currentSpeed = 0; // Make a variable to store the current speed
+
 float a;
 
+int leftWheel;
+int rightWheel;
 
 ESP8266WebServer server(80); // Start HTTP server at port 80
 
@@ -50,14 +54,66 @@ void getDistance() {
     a=sr04.Distance();
     Serial.print(a);
     Serial.println("cm");
-    delay(200);
+    delay(50);
+}
+
+void driveWheels(int valRight, int valLeft) {
+    if (valLeft <0) {
+        digitalWrite(MOTOR_A_ENABLE1, HIGH);
+        digitalWrite(MOTOR_A_ENABLE2, LOW);
+        leftWheel = -1;
+    } else {
+        digitalWrite(MOTOR_A_ENABLE1, LOW);
+        digitalWrite(MOTOR_A_ENABLE2, HIGH);
+        leftWheel = 1;
+    }
+    if (valRight < 0) {
+        digitalWrite(MOTOR_B_ENABLE1, HIGH);
+        digitalWrite(MOTOR_B_ENABLE2, LOW);
+        rightWheel = -1;
+    } else {
+        digitalWrite(MOTOR_B_ENABLE1, LOW);
+        digitalWrite(MOTOR_B_ENABLE2, HIGH);
+        rightWheel = 1;
+    }
+
+    if (valLeft == 0) {
+        digitalWrite(MOTOR_A_ENABLE1, HIGH);
+        digitalWrite(MOTOR_A_ENABLE2, HIGH);
+        leftWheel  = 0;
+        
+    }
+    if (valRight == 0) {
+        digitalWrite(MOTOR_B_ENABLE1, HIGH);
+        digitalWrite(MOTOR_B_ENABLE2, HIGH);
+        rightWheel = 0;
+    }
+}
+ 
+void readDirection() {
+    if (leftWheel == 1 && rightWheel == 1) {
+        dState.dir = FORWARD;
+    }
+    else if (leftWheel == -1 && rightWheel == -1) {
+        dState.dir = BACKWARD;
+    }
+    else if (leftWheel == 1 && rightWheel == -1) {
+        dState.dir = RIGHT;
+    }
+    else if (leftWheel == -1 && rightWheel == 1) {
+        dState.dir = LEFT;
+    }
+    else {
+        dState.dir = NONE;
+    }
 }
 
 void driveForward() {
-    digitalWrite(MOTOR_A_ENABLE1, LOW);
-    digitalWrite(MOTOR_A_ENABLE2, HIGH);
-    digitalWrite(MOTOR_B_ENABLE1, LOW);
-    digitalWrite(MOTOR_B_ENABLE2, HIGH);
+    driveWheels(1,1);
+    // digitalWrite(MOTOR_A_ENABLE1, LOW);
+    // digitalWrite(MOTOR_A_ENABLE2, HIGH);
+    // digitalWrite(MOTOR_B_ENABLE1, LOW);
+    // digitalWrite(MOTOR_B_ENABLE2, HIGH);
 
     if(debugLevel > 1) {
     Serial.println("Driving forward");
@@ -65,10 +121,12 @@ void driveForward() {
 }
 
 void driveBackward() {
-    digitalWrite(MOTOR_A_ENABLE1, HIGH);
-    digitalWrite(MOTOR_A_ENABLE2, LOW);
-    digitalWrite(MOTOR_B_ENABLE1, HIGH);
-    digitalWrite(MOTOR_B_ENABLE2, LOW);
+    driveWheels(-1,-1);
+
+    // digitalWrite(MOTOR_A_ENABLE1, HIGH);
+    // digitalWrite(MOTOR_A_ENABLE2, LOW);
+    // digitalWrite(MOTOR_B_ENABLE1, HIGH);
+    // digitalWrite(MOTOR_B_ENABLE2, LOW);
 
     if(debugLevel > 1) {
     Serial.println("Driving backwards");
@@ -77,15 +135,18 @@ void driveBackward() {
 
 // Invert direction, default is wheel driving forward
 void changeDirA() {
-    digitalWrite(MOTOR_A_ENABLE1, !digitalRead(MOTOR_A_ENABLE1));
-    digitalWrite(MOTOR_A_ENABLE2, !digitalRead(MOTOR_A_ENABLE2));
+    //digitalWrite(MOTOR_A_ENABLE1, !digitalRead(MOTOR_A_ENABLE1));
+    //digitalWrite(MOTOR_A_ENABLE2, !digitalRead(MOTOR_A_ENABLE2));
+    driveWheels(1,-1);
 }
 
 void changeDirB() {
-    digitalWrite(MOTOR_B_ENABLE1, !digitalRead(MOTOR_B_ENABLE1));
-    digitalWrite(MOTOR_B_ENABLE2, !digitalRead(MOTOR_B_ENABLE2));
+     driveWheels(-1,1);
+    //digitalWrite(MOTOR_B_ENABLE1, !digitalRead(MOTOR_B_ENABLE1));
+    //digitalWrite(MOTOR_B_ENABLE2, !digitalRead(MOTOR_B_ENABLE2));
 }
 
+/*
 void stopWheel(bool left) {
     if(left) {
         digitalWrite(MOTOR_A_ENABLE1, HIGH);
@@ -96,22 +157,20 @@ void stopWheel(bool left) {
         digitalWrite(MOTOR_B_ENABLE2, HIGH);
     }
 }
+*/
 
 void stopAll() {
     // Set both motor pins on HIGH
-    stopWheel(true);
-    stopWheel(false);
+    ///stopWheel(true);
+    //stopWheel(false);
+    driveWheels(0,0);
     if( debugLevel > 1) {
     Serial.println("Robot is stopping...");
     }
 }
 
 void turnDir(direction_t dir, int time) {
-
-    driveForward();
-
     // If function argument equals LEFT, perform a right turn
-
     if(dir==LEFT) {
         if( debugLevel > 1) {
         Serial.println("Turning left");
@@ -135,15 +194,41 @@ void turnDir(direction_t dir, int time) {
 }
 
 void turnRight() {
-    // Perform circa 180 degree right turn 
-    turnDir(RIGHT,500);
-    stopAll();
+    if(dState.dir == FORWARD) {
+        turnDir(RIGHT,250);
+        stopAll();
+        delay(200);
+        driveForward();
+    }
+    else if(dState.dir == BACKWARD) {
+        turnDir(RIGHT,250);
+        stopAll();
+        delay(200);
+        driveBackward();
+    }
+    else {
+        turnDir(RIGHT,250);
+        stopAll();
+    }
 }
 
 void turnLeft() {
-    // Perform circa 180 degree right turn 
-    turnDir(LEFT,500);
-    stopAll();
+    if(dState.dir == FORWARD) {
+        turnDir(LEFT,250);
+        stopAll();
+        delay(200);
+        driveForward();
+    }
+    else if(dState.dir == BACKWARD) {
+        turnDir(LEFT,250);
+        stopAll();
+        delay(200);
+        driveBackward();
+    }
+    else {
+        turnDir(RIGHT,250);
+        stopAll();
+    }
 }
 
 void turnServo() {
@@ -173,17 +258,17 @@ void initServo() {
 void collisionHandling() {
     float distance = sr04.Distance();
     driveForward();
+    setDefaultSpeed();
     // If ultrasonic distance is less than 10 perform a obstacle avoidance routine, else proceed driving
     if (distance > 0.0) {
         if (distance <= 10.0) {
             // Wait if the sensor value stabilizes
             stopAll();
             delay(500);
-
+            setDefaultSpeed();
             do {
-                    setDefaultSpeed();
                     delay(40);
-                    turnDir(RIGHT,1000); 
+                    turnDir(RIGHT, 500);
                     distance = sr04.Distance(); // Update distance
             } 
             while (distance < 20.0);
@@ -192,15 +277,12 @@ void collisionHandling() {
             }
             stopAll();
             delay(500);
-        }
-   
-        else if (distance < 20.0) {
+            driveForward();
+        } else if (distance > 20.0) {
             analogWrite(MOTOR_A_SPEED, DEFAULT_SPEED);
             analogWrite(MOTOR_B_SPEED, DEFAULT_SPEED);
             driveForward();
-        }
-
-        else {
+        } else {
             analogWrite(MOTOR_A_SPEED, MAX_SPEED);
             analogWrite(MOTOR_B_SPEED, MAX_SPEED);
             driveForward();
@@ -249,7 +331,7 @@ void handleGet(){
     if(server.args()>0) {
         if(server.hasArg("speed")) {
             // Log current speed
-            if (debugLevel == 2){
+            if (debugLevel > 2){
             Serial.println(server.arg("speed").toInt());
             }
             // Convert text to integer and set motor speed accordingly
@@ -316,7 +398,6 @@ void setup() {
         Serial.print("IP address: ");
         Serial.println(WiFi.softAPIP());
     }
-
 
     ArduinoOTA.setHostname("ESP8266");
     ArduinoOTA.setPassword("esp8266");
@@ -405,8 +486,12 @@ void setup() {
 void loop() {
     // Handle remote uploading
     ArduinoOTA.handle();
+
+    readDirection();
+
     // Handle server
     server.handleClient();
+
     // Force different states for continous execution
     switch(dState.mode){
         case IDLE:
