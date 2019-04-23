@@ -17,13 +17,14 @@
 #define ECHO_PIN 14
 #define TRIG_PIN 16
 
-typedef enum {LEFT, RIGHT} direction_t;
+typedef enum {LEFT, RIGHT, FORWARD, BACKWARD} direction_t;
+typedef enum {AUTO, SPIRAL, STANDARD} drivingMode_t;
 
 /* Ultrasonic sensor */
 void getDistance();
 
 /* Robot movement */
-void setAuto();
+void setMode(drivingMode_t alteredMode);
 void setDefaultSpeed();
 void initServo();
 void driveForward();
@@ -43,6 +44,13 @@ void driveSpiral();
 String prepareHtmlPage();
 void handleGet();
 void handleNotFound();
+
+typedef struct drivingState {
+    direction_t dir;
+    int speedA;
+    int speedB;
+    drivingMode_t mode;
+} drivingState_t;
 
 #endif //EDUBOT_EDUBOT_H
 

@@ -19,35 +19,38 @@ Servo servo1;
 SR04 sr04 = SR04(ECHO_PIN,TRIG_PIN);
 float a;
 
-bool autoEnabled=false;
+drivingState_t dState = {
+    FORWARD,
+    DEFAULT_SPEED,
+    DEFAULT_SPEED,
+    STANDARD
+};
 
-int speedA = DEFAULT_SPEED;
-int speedB = DEFAULT_SPEED;
 int currentSpeed = 0; // Make a variable to store the current speed
 
 ESP8266WebServer server(80); // Start HTTP server at port 80
 
-void setAuto(){
-	autoEnabled = !autoEnabled;
-    stopAll(); // Signaling mode change
-    setDefaultSpeed(); // Make sure roboto isn't moving with maximum speed
-    delay(300);
+void setMode(drivingMode_t alteredMode) {
+    if(alteredMode==dState.mode)
+        dState.mode = STANDARD;
+    else 
+        dState.mode = alteredMode;
 }
 
-void setDefaultSpeed(){
+void setDefaultSpeed() {
     analogWrite(MOTOR_A_SPEED, DEFAULT_SPEED);
     analogWrite(MOTOR_B_SPEED, DEFAULT_SPEED);
 }
 
 // Read ultrasonic sensor in cm and print log
-void getDistance(){
+void getDistance() {
     a=sr04.Distance();
     Serial.print(a);
     Serial.println("cm");
     delay(200);
 }
 
-void driveForward(){
+void driveForward() {
     Serial.println("--------------------");
     Serial.println("Driving forward");
     Serial.println("--------------------");
@@ -58,7 +61,7 @@ void driveForward(){
     digitalWrite(MOTOR_B_ENABLE2, HIGH);
 }
 
-void driveBackward(){
+void driveBackward() {
     Serial.println("--------------------");
     Serial.println("Driving backwards");
     Serial.println("--------------------");
@@ -69,28 +72,28 @@ void driveBackward(){
 }
 
 // Invert direction, default is wheel driving forward
-void changeDirA(){
+void changeDirA() {
     digitalWrite(MOTOR_A_ENABLE1, !digitalRead(MOTOR_A_ENABLE1));
     digitalWrite(MOTOR_A_ENABLE2, !digitalRead(MOTOR_A_ENABLE2));
 }
 
-void changeDirB(){
+void changeDirB() {
     digitalWrite(MOTOR_B_ENABLE1, !digitalRead(MOTOR_B_ENABLE1));
     digitalWrite(MOTOR_B_ENABLE2, !digitalRead(MOTOR_B_ENABLE2));
 }
 
-void stopWheel(bool left){
-    if(left){
+void stopWheel(bool left) {
+    if(left) {
         digitalWrite(MOTOR_A_ENABLE1, HIGH);
         digitalWrite(MOTOR_A_ENABLE2, HIGH);
     }
-    else{
+    else {
         digitalWrite(MOTOR_B_ENABLE1, HIGH);
         digitalWrite(MOTOR_B_ENABLE2, HIGH);
     }
 }
 
-void stopAll(){
+void stopAll() {
     Serial.println("--------------------");
     Serial.println("Robot is stopping...");
     Serial.println("--------------------");
@@ -100,47 +103,42 @@ void stopAll(){
     stopWheel(false);
 }
 
-void turnDir(direction_t dir, int time){
-    // Read both motor speeds
-    speedA = analogRead(MOTOR_A_SPEED);
-    speedB = analogRead(MOTOR_B_SPEED);
+void turnDir(direction_t dir, int time) {
 
-    // Make sure robot is driving forward
     driveForward();
 
     // If function argument equals LEFT, perform a right turn
     Serial.println("--------------------");
-    if(dir==LEFT){
+    if(dir==LEFT) {
         Serial.println("Turning left");
         changeDirA();
         delay(time);
     }
     // If function argument is not LEFT, perform a right turn
-    else if(dir==RIGHT){
+    else if(dir==RIGHT) {
         Serial.println("Turning right");
         changeDirB();
         delay(time);
     }
-    else{
+    else {
         Serial.println("Error reading direction!");
     }
-
     Serial.println("--------------------");
 }
 
-void turnRight(){
+void turnRight() {
     // Perform circa 180 degree right turn 
     turnDir(RIGHT,500);
     stopAll();
 }
 
-void turnLeft(){
+void turnLeft() {
     // Perform circa 180 degree right turn 
     turnDir(LEFT,500);
     stopAll();
 }
 
-void turnServo(){
+void turnServo() {
     // Start rotation from the middle
     int pos = SERVO_DEFAULT;
 
@@ -158,48 +156,38 @@ void turnServo(){
       delay(1000);
 }
 
-void initServo(){
+void initServo() {
     // Set servo in a middle position
     servo1.write(SERVO_DEFAULT);
 }
 
 // Obstacle avoidance mode
-void collisionHandling(){
+void collisionHandling() {
     float distance = sr04.Distance();
-
+    driveForward();
     // If ultrasonic distance is less than 10 perform a obstacle avoidance routine, else proceed driving
-    if (distance > 0.0){
-        if (distance <= 10.0)
-        {
+    if (distance > 0.0) {
+        if (distance <= 8.0) {
             // Wait if the sensor value stabilizes
             stopAll();
             delay(500);
-            // Perform a turning action until object is out of sight
 
             do {
-                distance = sr04.Distance();
-                turnDir(RIGHT,100);
-                delay(40);
+                    setDefaultSpeed();
+                    turnDir(RIGHT,1000);
+                    delay(40); 
+                    distance = sr04.Distance(); // Update distance
             } 
-            while (distance < 20.0);
-
-            //turnServo(); // Make sure angle isn't tricking the sensor
-            delay(500);
-            //initServo();
-
-            // Make speed lower to give more accurate ultra sonic sensor measurements
-            analogWrite(MOTOR_A_SPEED, MINIMUM_SPEED); 
-            analogWrite(MOTOR_B_SPEED, MINIMUM_SPEED);
-            driveForward();
+            while (distance < 15.0);
         }
    
-        else if (distance < 30.0){
+        else if (distance < 25.0) {
             analogWrite(MOTOR_A_SPEED, DEFAULT_SPEED);
             analogWrite(MOTOR_B_SPEED, DEFAULT_SPEED);
             driveForward();
         }
 
-        else{
+        else {
             analogWrite(MOTOR_A_SPEED, MAX_SPEED);
             analogWrite(MOTOR_B_SPEED, MAX_SPEED);
             driveForward();
@@ -209,23 +197,21 @@ void collisionHandling(){
 }
 
 // Drive an increasingly steeper circle
-void driveSpiral(){
+void driveSpiral() {
     Serial.println("--------------------");
     Serial.println("Driving a spiral");
     Serial.println("--------------------");
 
-    analogWrite(MOTOR_A_SPEED, DEFAULT_SPEED);
-    analogWrite(MOTOR_B_SPEED, DEFAULT_SPEED);
-    if (speedB > MINIMUM_SPEED) {
-        speedB--; // Decrementing motor speed on one side for an increasingly sharper curvature
-        analogWrite(MOTOR_A_SPEED, speedA);
-        analogWrite(MOTOR_A_SPEED, speedB);
+    if (dState.speedB > MINIMUM_SPEED) {
+        dState.speedB--; // Decrementing motor speed on one side for an increasingly sharper curvature
+        analogWrite(MOTOR_A_SPEED, dState.speedA);
+        analogWrite(MOTOR_A_SPEED, dState.speedB);
         delay(150); // Wait a little so the curve is not too sharp
     }
 }
 
 
-String prepareHtmlPage(){
+String prepareHtmlPage() {
         // Init string
         String htmlPage;
 
@@ -249,8 +235,8 @@ String prepareHtmlPage(){
 }
 
 void handleGet(){
-    if(server.args()>0){
-        if(server.hasArg("speed")){
+    if(server.args()>0) {
+        if(server.hasArg("speed")) {
             // Log current speed
             Serial.println(server.arg("speed").toInt());
 
@@ -258,26 +244,15 @@ void handleGet(){
             currentSpeed = abs(server.arg("speed").toInt());
             analogWrite(MOTOR_A_SPEED, currentSpeed);
             analogWrite(MOTOR_B_SPEED, currentSpeed); 
-
-            /*
-            
-            if(server.arg("speed").toInt()<0){ // If the value is lower than zero then drive backwards
-                driveBackward();
-            }
-            else{
-                driveForward();
-            }
-            */
         }
     }
-    else{
-      
+    else {
         // Send files to server
         server.send(200, "text/html", prepareHtmlPage()); // Push HTML code
     }
 }
 
-void handleNotFound(){
+void handleNotFound() {
     // Print error in case something goes wrong
     String message = "File Not Found\n\n";
     message += "URI: ";
@@ -288,14 +263,14 @@ void handleNotFound(){
     message += server.args();
     message += "\n";
 
-    for (uint8_t i=0; i<server.args(); i++){
+    for (uint8_t i=0; i<server.args(); i++) {
         message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
     }
 
     server.send(404, "text/plain", message);
 }
 
-void setup(){
+void setup() {
     // Initialize serial port
     Serial.begin(115200);
 
@@ -346,7 +321,7 @@ void setup(){
     });
 
     server.on("/auto", []() {
-        setAuto();
+        setMode(AUTO);
         server.send(204);
     });
 
@@ -361,7 +336,10 @@ void setup(){
      });
 
     server.on("/spiral",[]() {
-        driveSpiral();
+        driveForward();
+        dState.speedB = analogRead(MOTOR_B_SPEED);
+        setMode(SPIRAL);
+        analogWrite(MOTOR_B_SPEED, dState.speedB);
         server.send(204);
     });
 
@@ -377,14 +355,21 @@ void setup(){
     Serial.println("HTTP server started");
 }
 
-void loop(){ 
-    //server.handleClient();
-    if(autoEnabled){
-        server.handleClient();
-        collisionHandling();
+void loop() { 
+    server.handleClient();
+
+    switch(dState.mode){
+        case STANDARD:
+            break;
+        case AUTO:
+            collisionHandling();
+            break;
+        case SPIRAL:
+            driveSpiral();
+            break;
+        default:
+        Serial.println("Unregistered Mode!");
+            break;
     }
 
-    else if(!autoEnabled){ 
-        server.handleClient(); // Handle requests
-    }
 } 
