@@ -17,7 +17,7 @@ The robot has the basic ability to be controlled manually as well as an obstacle
 - `git clone https://github.com/alexanderstephan/edubot.git`
 - Install [PlatformIO Core](https://docs.platformio.org/en/latest/core.html) i.e. via [AUR](https://aur.archlinux.org/packages/platformio-git/) on Arch Linux
 - `cd edubot && platformio run` (You can specify upload_port in platform.ini)
-
+- To access the control interface connect to the AP with the specified password and navigate your browser to APs IP probably `192.168.4.1`
 ### Wiring
 ![Schematic](https://raw.githubusercontent.com/alexanderstephan/edubot/master/edubot_bb.png)
 
