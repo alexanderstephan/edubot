@@ -174,14 +174,16 @@ void collisionHandling() {
 
             do {
                     setDefaultSpeed();
-                    turnDir(RIGHT,1000);
-                    delay(40); 
+                    delay(40);
+                    turnDir(RIGHT,1000); 
                     distance = sr04.Distance(); // Update distance
             } 
-            while (distance < 15.0);
+            while (distance < 20.0);
+            stopAll();
+            delay(500);
         }
    
-        else if (distance < 30.0) {
+        else if (distance < 20.0) {
             analogWrite(MOTOR_A_SPEED, DEFAULT_SPEED);
             analogWrite(MOTOR_B_SPEED, DEFAULT_SPEED);
             driveForward();
@@ -336,10 +338,7 @@ void setup() {
      });
 
     server.on("/spiral",[]() {
-        driveForward();
-        dState.speedB = analogRead(MOTOR_B_SPEED);
         setMode(SPIRAL);
-        analogWrite(MOTOR_B_SPEED, dState.speedB);
         server.send(204);
     });
 
