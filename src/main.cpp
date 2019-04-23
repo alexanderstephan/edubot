@@ -13,26 +13,28 @@
 #define ROTATION_ANGLE 20
 #define HOST "edubot"
 #define PASSWORD "12345678"
+#define DEBUG_LEVEL 2
 
 Servo servo1;
-
 SR04 sr04 = SR04(ECHO_PIN,TRIG_PIN);
-float a;
 
 drivingState_t dState = {
     FORWARD,
     DEFAULT_SPEED,
     DEFAULT_SPEED,
-    STANDARD
+    IDLE
 };
 
 int currentSpeed = 0; // Make a variable to store the current speed
+int debugLevel = DEBUG_LEVEL;
+float a;
+
 
 ESP8266WebServer server(80); // Start HTTP server at port 80
 
 void setMode(drivingMode_t alteredMode) {
     if(alteredMode==dState.mode)
-        dState.mode = STANDARD;
+        dState.mode = IDLE;
     else 
         dState.mode = alteredMode;
 }
@@ -51,24 +53,25 @@ void getDistance() {
 }
 
 void driveForward() {
-    Serial.println("--------------------");
-    Serial.println("Driving forward");
-    Serial.println("--------------------");
-
     digitalWrite(MOTOR_A_ENABLE1, LOW);
     digitalWrite(MOTOR_A_ENABLE2, HIGH);
     digitalWrite(MOTOR_B_ENABLE1, LOW);
     digitalWrite(MOTOR_B_ENABLE2, HIGH);
+
+    if(debugLevel > 1) {
+    Serial.println("Driving forward");
+    }
 }
 
 void driveBackward() {
-    Serial.println("--------------------");
-    Serial.println("Driving backwards");
-    Serial.println("--------------------");
     digitalWrite(MOTOR_A_ENABLE1, HIGH);
     digitalWrite(MOTOR_A_ENABLE2, LOW);
     digitalWrite(MOTOR_B_ENABLE1, HIGH);
     digitalWrite(MOTOR_B_ENABLE2, LOW);
+
+    if(debugLevel > 1) {
+    Serial.println("Driving backwards");
+    }
 }
 
 // Invert direction, default is wheel driving forward
@@ -94,13 +97,12 @@ void stopWheel(bool left) {
 }
 
 void stopAll() {
-    Serial.println("--------------------");
-    Serial.println("Robot is stopping...");
-    Serial.println("--------------------");
-
     // Set both motor pins on HIGH
     stopWheel(true);
     stopWheel(false);
+    if( debugLevel > 1) {
+    Serial.println("Robot is stopping...");
+    }
 }
 
 void turnDir(direction_t dir, int time) {
@@ -108,22 +110,27 @@ void turnDir(direction_t dir, int time) {
     driveForward();
 
     // If function argument equals LEFT, perform a right turn
-    Serial.println("--------------------");
+
     if(dir==LEFT) {
+        if( debugLevel > 1) {
         Serial.println("Turning left");
+        }
         changeDirA();
         delay(time);
     }
-    // If function argument is not LEFT, perform a right turn
+    // If function argument is RIGHT, perform a right turn
     else if(dir==RIGHT) {
+        if( debugLevel > 1) {
         Serial.println("Turning right");
+        }
         changeDirB();
         delay(time);
     }
     else {
-        Serial.println("Error reading direction!");
+        if( debugLevel > 1) {
+        Serial.println("Error reading direction");
+        }
     }
-    Serial.println("--------------------");
 }
 
 void turnRight() {
@@ -179,6 +186,9 @@ void collisionHandling() {
                     distance = sr04.Distance(); // Update distance
             } 
             while (distance < 20.0);
+            if( debugLevel > 1) {
+                Serial.println("Avoided obstacle!");
+            }
             stopAll();
             delay(500);
         }
@@ -222,17 +232,19 @@ String prepareHtmlPage() {
         // Prevent error
     
         if (!f) {
+            if(debugLevel > 1) {
             Serial.println("Error reading .html file!");
+            }
         }
     
         // Read file into string
         else {
             htmlPage = f.readString();
+            if( debugLevel > 1) {
             Serial.println("Reading files succesfully!");
+            }
         }
-    
-        // Close file
-        f.close();
+        f.close();  // Close file
         return htmlPage;
 }
 
@@ -296,6 +308,7 @@ void setup() {
 
     // Define its name and password
     WiFi.softAP(HOST, PASSWORD);
+    if (debugLevel > 1) {
     Serial.println("");
 
     // Print IP adress
@@ -304,7 +317,7 @@ void setup() {
     Serial.println("edubot");
     Serial.print("IP address: ");
     Serial.println(WiFi.softAPIP());
-    
+    }
     // Handle server requests
     server.on("/",HTTP_GET,handleGet);
 
@@ -355,10 +368,11 @@ void setup() {
 }
 
 void loop() { 
+    // Handle server
     server.handleClient();
-
+    // Force different states for continous execution
     switch(dState.mode){
-        case STANDARD:
+        case IDLE:
             break;
         case AUTO:
             collisionHandling();
@@ -367,7 +381,9 @@ void loop() {
             driveSpiral();
             break;
         default:
-        Serial.println("Unregistered Mode!");
-            break;
+        if( debugLevel > 1) {
+            Serial.println("Unregistered Mode!");
+        }
+        break;
     }
 } 
