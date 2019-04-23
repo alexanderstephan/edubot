@@ -23,3 +23,6 @@ button {
 	margin-bottom: 20px;
 }
 
+.toggleButton.pressed {
+	background-color: red;
+}

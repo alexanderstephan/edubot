@@ -224,13 +224,9 @@ void driveSpiral() {
 
 
 String prepareHtmlPage() {
-        // Init string
-        String htmlPage;
-
-        // Open file
-        File f = SPIFFS.open("/edubot.html","r");
-        // Prevent error
-    
+        String htmlPage;                                // Init string
+        File f = SPIFFS.open("/edubot.html","r");       // Open file
+        // Check for an error
         if (!f) {
             if(debugLevel > 1) {
             Serial.println("Error reading .html file!");
@@ -252,8 +248,9 @@ void handleGet(){
     if(server.args()>0) {
         if(server.hasArg("speed")) {
             // Log current speed
+            if (debugLevel == 2){
             Serial.println(server.arg("speed").toInt());
-
+            }
             // Convert text to integer and set motor speed accordingly
             currentSpeed = abs(server.arg("speed").toInt());
             analogWrite(MOTOR_A_SPEED, currentSpeed);
@@ -309,14 +306,14 @@ void setup() {
     // Define its name and password
     WiFi.softAP(HOST, PASSWORD);
     if (debugLevel > 1) {
-    Serial.println("");
+        Serial.println("");
 
-    // Print IP adress
-    Serial.println("");
-    Serial.print("Name of Access Point is:");
-    Serial.println("edubot");
-    Serial.print("IP address: ");
-    Serial.println(WiFi.softAPIP());
+        // Print IP adress
+        Serial.println("");
+        Serial.print("Name of Access Point is:");
+        Serial.println("edubot");
+        Serial.print("IP address: ");
+        Serial.println(WiFi.softAPIP());
     }
     // Handle server requests
     server.on("/",HTTP_GET,handleGet);
@@ -364,7 +361,9 @@ void setup() {
 
     // Start Server
     server.begin();
-    Serial.println("HTTP server started");
+    if(debugLevel > 1) {
+        Serial.println("HTTP server started");
+    }
 }
 
 void loop() { 
