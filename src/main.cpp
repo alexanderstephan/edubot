@@ -35,10 +35,12 @@ float a;
 ESP8266WebServer server(80); // Start HTTP server at port 80
 
 void setMode(drivingMode_t alteredMode) {
-    if(alteredMode==dState.mode)
+    if(alteredMode == dState.mode) {
         dState.mode = IDLE;
-    else 
+        }
+    else {
         dState.mode = alteredMode;
+    }
 }
 
 void setDefaultSpeed() {
@@ -85,23 +87,27 @@ void driveWheels(int valRight, int valLeft) {
         digitalWrite(MOTOR_B_ENABLE2, HIGH);
         dState.speedB = 0;
     }
-    analogWrite(MOTOR_A_SPEED, abs(valLeft));
-    analogWrite(MOTOR_B_SPEED, abs(valRight));
+    analogWrite(MOTOR_A_SPEED, abs(dState.speedA));
+    analogWrite(MOTOR_B_SPEED, abs(dState.speedB));
 
 }
  
 void readDirection() {
     if (dState.speedA > 0 && dState.speedB > 0) {
         dState.dir = FORWARD;
+        Serial.println("FORWARD");
     }
     else if (dState.speedA < 0  && dState.speedB < 0) {
         dState.dir = BACKWARD;
+        Serial.println("BACKWARD");
     }
     else if (dState.speedA > 0 && dState.speedB < 0) {
         dState.dir = RIGHT;
+        Serial.println("RIGHT");
     }
     else if (dState.speedA < 0 && dState.speedB > 0) {
         dState.dir = LEFT;
+        Serial.println("LEFT");
     }
     else {
         dState.dir = NONE;
@@ -109,7 +115,7 @@ void readDirection() {
 }
 
 void driveForward() {
-    driveWheels(dState.speedA,dState.speedB);
+    driveWheels(abs(dState.speedA),abs(dState.speedB));
 
     if(debugLevel > 1) {
         Serial.println("Driving forward");
@@ -117,8 +123,7 @@ void driveForward() {
 }
 
 void driveBackward() {
-    driveWheels(-dState.speedA,-dState.speedB);
-
+        driveWheels(-abs(dState.speedA),-abs(dState.speedB));
     if(debugLevel > 1) {
         Serial.println("Driving backwards");
     }
@@ -310,10 +315,10 @@ void handleGet(){
                 Serial.println(server.arg("speed").toInt());
             }
             // Convert text to integer and set motor speed accordingly
-            dState.speedA = abs(server.arg("speed").toInt());
-            dState.speedB = abs(server.arg("speed").toInt());
-            analogWrite(MOTOR_A_SPEED, dState.speedA);
-            analogWrite(MOTOR_B_SPEED, dState.speedB); 
+            dState.speedA = server.arg("speed").toInt();
+            dState.speedB = server.arg("speed").toInt();
+            analogWrite(MOTOR_A_SPEED, abs(dState.speedA));
+            analogWrite(MOTOR_B_SPEED, abs(dState.speedB)); 
         }
     }
     else {
@@ -462,9 +467,8 @@ void setup() {
 void loop() {
     // Handle remote uploading
     ArduinoOTA.handle();
-
     readDirection();
-    driveWheels(dState.speedA, dState.speedB);
+
     // Handle server
     server.handleClient();
 
