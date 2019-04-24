@@ -18,7 +18,7 @@
 #define TRIG_PIN 16
 
 typedef enum {LEFT, RIGHT, FORWARD, BACKWARD, NONE} direction_t;
-typedef enum {AUTO, SPIRAL, IDLE} drivingMode_t;
+typedef enum {AUTO, FOLLOW, IDLE} drivingMode_t;
 
 /* Ultrasonic sensor */
 void getDistance();
@@ -32,8 +32,7 @@ void driveForward();
 void driveBackward();
 void changeDirA();
 void changeDirB();
-void stopWheel(bool left);
-void stopAll();
+void handBrake();
 void turnDir(direction_t dir, int time);
 void turnLeft();
 void turnRight();
