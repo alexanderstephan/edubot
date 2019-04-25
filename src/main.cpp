@@ -6,6 +6,8 @@
 #include <FS.h>
 #include <ArduinoOTA.h>
 #include "edubot.h"
+#include <motor.h>
+
 
 #define DEFAULT_SPEED 512
 #define SERVO_DEFAULT 90
@@ -14,38 +16,31 @@
 #define ROTATION_ANGLE 20
 #define HOST "edubot"
 #define PASSWORD "12345678"
+
 #define DEBUG_LEVEL 2
+int debug_Level = DEBUG_LEVEL;
+int currentSpeed = 0; // Make a variable to store the current speed
+float a;
 
 Servo servo1;
 SR04 sr04 = SR04(ECHO_PIN,TRIG_PIN);
 
-drivingState_t dState = {
+drivingState_t d_State = {
     NONE,
     0,
     0,
     IDLE
 };
 
-int debugLevel = DEBUG_LEVEL;
-
-int currentSpeed = 0; // Make a variable to store the current speed
-
-float a;
-
 ESP8266WebServer server(80); // Start HTTP server at port 80
 
 void setMode(drivingMode_t alteredMode) {
-    if(alteredMode == dState.mode) {
-        dState.mode = IDLE;
+    if(alteredMode == d_State.mode) {
+        d_State.mode = IDLE;
         }
     else {
-        dState.mode = alteredMode;
+        d_State.mode = alteredMode;
     }
-}
-
-void setDefaultSpeed() {
-    analogWrite(MOTOR_A_SPEED, DEFAULT_SPEED);
-    analogWrite(MOTOR_B_SPEED, DEFAULT_SPEED);
 }
 
 // Read ultrasonic sensor in cm and print log
@@ -55,171 +50,7 @@ void getDistance() {
     Serial.println("cm");
     delay(50);
 }
-
-void driveWheels(int valRight, int valLeft) {
-    if (valLeft < 0) {
-        digitalWrite(MOTOR_A_ENABLE1, HIGH);
-        digitalWrite(MOTOR_A_ENABLE2, LOW);
-        dState.speedA = valLeft;
-    } else {
-        digitalWrite(MOTOR_A_ENABLE1, LOW);
-        digitalWrite(MOTOR_A_ENABLE2, HIGH);
-        dState.speedA = valLeft;
-    }
-    if (valRight < 0) {
-        digitalWrite(MOTOR_B_ENABLE1, HIGH);
-        digitalWrite(MOTOR_B_ENABLE2, LOW);
-        dState.speedB = valRight;
-    } else {
-        digitalWrite(MOTOR_B_ENABLE1, LOW);
-        digitalWrite(MOTOR_B_ENABLE2, HIGH);
-        dState.speedB = valRight;
-    }
-
-    if (valLeft == 0) {
-        digitalWrite(MOTOR_A_ENABLE1, HIGH);
-        digitalWrite(MOTOR_A_ENABLE2, HIGH);
-        dState.speedB  = 0;
-        
-    }
-    if (valRight == 0) {
-        digitalWrite(MOTOR_B_ENABLE1, HIGH);
-        digitalWrite(MOTOR_B_ENABLE2, HIGH);
-        dState.speedB = 0;
-    }
-    analogWrite(MOTOR_A_SPEED, abs(dState.speedA));
-    analogWrite(MOTOR_B_SPEED, abs(dState.speedB));
-
-}
  
-void readDirection() {
-    if (dState.speedA > 0 && dState.speedB > 0) {
-        dState.dir = FORWARD;
-        Serial.println("FORWARD");
-    }
-    else if (dState.speedA < 0  && dState.speedB < 0) {
-        dState.dir = BACKWARD;
-        Serial.println("BACKWARD");
-    }
-    else if (dState.speedA > 0 && dState.speedB < 0) {
-        dState.dir = RIGHT;
-        Serial.println("RIGHT");
-    }
-    else if (dState.speedA < 0 && dState.speedB > 0) {
-        dState.dir = LEFT;
-        Serial.println("LEFT");
-    }
-    else {
-        dState.dir = NONE;
-    }
-}
-
-void driveForward() {
-    driveWheels(abs(dState.speedA),abs(dState.speedB));
-
-    if(debugLevel > 1) {
-        Serial.println("Driving forward");
-    }
-}
-
-void driveBackward() {
-        driveWheels(-abs(dState.speedA),-abs(dState.speedB));
-    if(debugLevel > 1) {
-        Serial.println("Driving backwards");
-    }
-}
-
-// Change direction, default is wheel driving forward
-void changeDirA() {
-    driveWheels(dState.speedA,-dState.speedB);
-}
-
-void changeDirB() {
-     driveWheels(-dState.speedA,dState.speedB);
-}
-
-void stopWheel(bool left) {
-    if(left) {
-        digitalWrite(MOTOR_A_ENABLE1, HIGH);
-        digitalWrite(MOTOR_A_ENABLE2, HIGH);
-    }
-    else {
-        digitalWrite(MOTOR_B_ENABLE1, HIGH);
-        digitalWrite(MOTOR_B_ENABLE2, HIGH);
-    }
-}
-
-void handBrake() {
-    // Set both motor pins on HIGH
-    stopWheel(true);
-    stopWheel(false);
-    if( debugLevel > 1) {
-    Serial.println("Robot is stopping...");
-    }
-}
-
-void turnDir(direction_t dir, int time) {
-    // If function argument equals LEFT, perform a right turn
-    if(dir==LEFT) {
-        if( debugLevel > 1) {
-        Serial.println("Turning left");
-        }
-        changeDirA();
-        delay(time);
-    }
-    // If function argument is RIGHT, perform a right turn
-    else if(dir==RIGHT) {
-        if( debugLevel > 1) {
-        Serial.println("Turning right");
-        }
-        changeDirB();
-        delay(time);
-    }
-    else {
-        if( debugLevel > 1) {
-        Serial.println("Error reading direction");
-        }
-    }
-}
-
-void turnRight() {
-    if(dState.dir == FORWARD) {
-        turnDir(RIGHT,250);
-        handBrake();
-        delay(200);
-        driveForward();
-    }
-    else if(dState.dir == BACKWARD) {
-        turnDir(RIGHT,250);
-        handBrake();
-        delay(200);
-        driveBackward();
-    }
-    else {
-        turnDir(RIGHT,250);
-        handBrake();
-    }
-}
-
-void turnLeft() {
-    if(dState.dir == FORWARD) {
-        turnDir(LEFT,250);
-        handBrake();
-        delay(200);
-        driveForward();
-    }
-    else if(dState.dir == BACKWARD) {
-        turnDir(LEFT,250);
-        handBrake();
-        delay(200);
-        driveBackward();
-    }
-    else {
-        turnDir(RIGHT,250);
-        handBrake();
-    }
-}
-
 void turnServo() {
     // Start rotation from the middle
     int pos = SERVO_DEFAULT;
@@ -247,21 +78,19 @@ void initServo() {
 void collisionHandling() {
     float distance = sr04.Distance();
     driveForward();
-    setDefaultSpeed();
     // If ultrasonic distance is less than 10 perform a obstacle avoidance routine, else proceed driving
     if (distance > 0.0) {
         if (distance <= 10.0) {
             // Wait if the sensor value stabilizes
             handBrake();
             delay(500);
-            setDefaultSpeed();
             do {
                     delay(40);
                     turnDir(RIGHT, 500);
                     distance = sr04.Distance(); // Update distance
             } 
             while (distance < 20.0);
-            if( debugLevel > 1) {
+            if( debug_Level > 1) {
                 Serial.println("Avoided obstacle!");
             }
             handBrake();
@@ -285,13 +114,12 @@ void searchHand() {
 
 }
 
-
 String prepareHtmlPage() {
         String htmlPage;                                // Init string
         File f = SPIFFS.open("/edubot.html","r");       // Open file
         // Check for an error
         if (!f) {
-            if(debugLevel > 1) {
+            if(debug_Level > 1) {
             Serial.println("Error reading .html file!");
             }
         }
@@ -299,7 +127,7 @@ String prepareHtmlPage() {
         // Read file into string
         else {
             htmlPage = f.readString();
-            if( debugLevel > 1) {
+            if( debug_Level > 1) {
             Serial.println("Reading files succesfully!");
             }
         }
@@ -311,14 +139,14 @@ void handleGet(){
     if(server.args()>0) {
         if(server.hasArg("speed")) {
             // Log current speed
-            if (debugLevel > 2){
+            if (debug_Level > 2){
                 Serial.println(server.arg("speed").toInt());
             }
             // Convert text to integer and set motor speed accordingly
-            dState.speedA = server.arg("speed").toInt();
-            dState.speedB = server.arg("speed").toInt();
-            analogWrite(MOTOR_A_SPEED, abs(dState.speedA));
-            analogWrite(MOTOR_B_SPEED, abs(dState.speedB)); 
+            d_State.speedA = server.arg("speed").toInt();
+            d_State.speedB = server.arg("speed").toInt();
+            analogWrite(MOTOR_A_SPEED, abs(d_State.speedA));
+            analogWrite(MOTOR_B_SPEED, abs(d_State.speedB)); 
         }
     }
     else {
@@ -355,6 +183,8 @@ void setup() {
      // Initialize servo pin
     servo1.attach(12);
 
+    init(&d_State);
+
      // Set all motor pins as outout
     pinMode(MOTOR_A_SPEED, OUTPUT);
     pinMode(MOTOR_A_ENABLE1, OUTPUT);
@@ -369,7 +199,7 @@ void setup() {
 
     // Define its name and password
     WiFi.softAP(HOST, PASSWORD);
-    if (debugLevel > 1) {
+    if (debug_Level > 1) {
         Serial.println("");
 
         // Print IP adress
@@ -383,7 +213,7 @@ void setup() {
     ArduinoOTA.setHostname("ESP8266");
     ArduinoOTA.setPassword("esp8266");
 
-    if (debugLevel > 1) {
+    if (debug_Level > 1) {
         ArduinoOTA.onStart([]() {
             Serial.println("Start");
         });
@@ -409,7 +239,7 @@ void setup() {
 
     ArduinoOTA.begin();
 
-    if (debugLevel > 1) {
+    if (debug_Level > 1) {
     Serial.println("OTA ready");
     }
 
@@ -459,7 +289,7 @@ void setup() {
 
     // Start Server
     server.begin();
-    if(debugLevel > 1) {
+    if(debug_Level > 1) {
         Serial.println("HTTP server started");
     }
 }
@@ -473,7 +303,7 @@ void loop() {
     server.handleClient();
 
     // Force different states for continous execution
-    switch(dState.mode){
+    switch(d_State.mode){
         case IDLE:
             break;
         case AUTO:
@@ -483,7 +313,7 @@ void loop() {
             searchHand();
             break;
         default:
-        if( debugLevel > 1) {
+        if( debug_Level > 1) {
             Serial.println("Unregistered Mode!");
         }
         break;
