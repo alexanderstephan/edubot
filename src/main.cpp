@@ -4,23 +4,25 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <FS.h>
-#include <ArduinoOTA.h>
 #include "edubot.h"
-#include <motor.h>
-
+#include <motor.h> 
 
 #define DEFAULT_SPEED 512
 #define SERVO_DEFAULT 90
+#define SERVO_RIGHT 45
+#define SERVO_LEFT 135
 #define MINIMUM_SPEED 200
 #define MAX_SPEED 1023
 #define ROTATION_ANGLE 20
 #define HOST "edubot"
 #define PASSWORD "12345678"
+#define HAND_DISTANCE 15
+#define TOO_CLOSE 4
 
 #define DEBUG_LEVEL 2
 int debug_Level = DEBUG_LEVEL;
 int currentSpeed = 0; // Make a variable to store the current speed
-float a;
+float distance;
 
 Servo servo1;
 SR04 sr04 = SR04(ECHO_PIN,TRIG_PIN);
@@ -45,57 +47,59 @@ void setMode(drivingMode_t alteredMode) {
 
 // Read ultrasonic sensor in cm and print log
 void getDistance() {
-    a=sr04.Distance();
-    Serial.print(a);
+    distance=sr04.Distance();
+    Serial.print(distance);
     Serial.println("cm");
     delay(50);
 }
  
-void turnServo() {
+void turnServo(int servoDegree) {
     // Start rotation from the middle
     int pos = SERVO_DEFAULT;
+    int turnDegree = servoDegree;
 
     // Rotate until rotation limit is reached
-    for(pos=(SERVO_DEFAULT-ROTATION_ANGLE); pos<=(SERVO_DEFAULT+ROTATION_ANGLE); pos++) {
+    for(pos=(SERVO_DEFAULT-servoDegree); pos<=(SERVO_DEFAULT+servoDegree); pos++) {
         servo1.write(pos);  
         delay(15);
       }
     // If limit is reached, count backwards
-    for(pos=(SERVO_DEFAULT+ROTATION_ANGLE); pos>=(SERVO_DEFAULT-ROTATION_ANGLE); pos--) {
+    for(pos=(SERVO_DEFAULT-turnDegree); pos>=(SERVO_DEFAULT-turnDegree); pos--) {
         servo1.write(pos);
         delay(15);
       }
-      // Wait 1s between turns
-      delay(1000);
 }
 
-void initServo() {
-    // Set servo in a middle position
-    servo1.write(SERVO_DEFAULT);
+void initServo(int servoPos) {
+    servo1.write(servoPos);    // Set servo in a middle position
 }
 
 // Obstacle avoidance mode
 void collisionHandling() {
-    float distance = sr04.Distance();
+    distance = sr04.Distance();
     driveForward();
+    turnServo(20);
     // If ultrasonic distance is less than 10 perform a obstacle avoidance routine, else proceed driving
     if (distance > 0.0) {
-        if (distance <= 10.0) {
+        if (distance <= 10.0) {     
             // Wait if the sensor value stabilizes
-            handBrake();
-            delay(500);
+            handBrake();   
+            delay(500);                                      
             do {
                     delay(40);
-                    turnDir(RIGHT, 500);
-                    distance = sr04.Distance(); // Update distance
+                    turnDir(RIGHT, 600);            // Turn right until the object is out of sight
+                    distance = sr04.Distance();     // Update distance
             } 
             while (distance < 20.0);
+
             if( debug_Level > 1) {
                 Serial.println("Avoided obstacle!");
             }
+            // If threshold is reached wait a little to to see if the obstacle distance stays above 10cm
             handBrake();
+            turnServo(20);                                   
             delay(500);
-            driveForward();
+            driveForward(); // Continue driving forward
         } else if (distance > 20.0) {
             analogWrite(MOTOR_A_SPEED, DEFAULT_SPEED);
             analogWrite(MOTOR_B_SPEED, DEFAULT_SPEED);
@@ -110,10 +114,63 @@ void collisionHandling() {
 }
 
 // Make robot behave like a pet by following the owners hand
-void searchHand() {
+int searchHand() {
+    distance = sr04.Distance();
+    int handPosition =  0;
+    handBrake();
+    delay(500);
+    initServo(SERVO_RIGHT);
+
+    do { 
+        for (int servoPosition = SERVO_RIGHT; servoPosition >= SERVO_LEFT; servoPosition--) {
+            // Set servo position
+            servo1.write(servoPosition); 
+
+            // Make sure servo isn't turning too fast
+            delay(10);
+
+            // Update sensor value
+            distance = sr04.Distance(); 
+
+            // If hand position detected return it as an integer
+            if (distance <= HAND_DISTANCE) { 
+                handPosition = servoPosition;  
+                return handPosition;
+            }
+        }
+        // Same thing but in the other direction
+        for (int servoPosition = SERVO_LEFT; servoPosition <= SERVO_RIGHT; servoPosition++) {
+            servo1.write(servoPosition);
+            delay(10);
+
+            distance = sr04.Distance(); 
+        
+            if (distance <= HAND_DISTANCE) {
+                handPosition = servoPosition;
+                return handPosition;
+            }
+        }
+    } while (distance > HAND_DISTANCE); // Search while hand is not within reach
+}
+
+void followHand() {
+    initServo(SERVO_DEFAULT);
+    analogWrite(MOTOR_A_SPEED, MAX_SPEED);
+    analogWrite(MOTOR_B_SPEED, MAX_SPEED);
+    driveForward();
+
+    do {
+        distance = sr04.Distance();
+        delay(10);
+    } while ((distance <= HAND_DISTANCE) && (distance <= TOO_CLOSE));
+    handBrake();
+    delay(1000);
 
 }
 
+void turnTowardsHand() {
+    
+}
 String prepareHtmlPage() {
         String htmlPage;                                // Init string
         File f = SPIFFS.open("/edubot.html","r");       // Open file
@@ -138,11 +195,10 @@ String prepareHtmlPage() {
 void handleGet(){
     if(server.args()>0) {
         if(server.hasArg("speed")) {
-            // Log current speed
             if (debug_Level > 2){
-                Serial.println(server.arg("speed").toInt());
+                Serial.println(server.arg("speed").toInt());      // Log current speed
             }
-            // Convert text to integer and set motor speed accordingly
+            /* Convert text to integer and set motor speed accordingly */
             d_State.speedA = server.arg("speed").toInt();
             d_State.speedB = server.arg("speed").toInt();
             analogWrite(MOTOR_A_SPEED, abs(d_State.speedA));
@@ -210,39 +266,6 @@ void setup() {
         Serial.println(WiFi.softAPIP());
     }
 
-    ArduinoOTA.setHostname("ESP8266");
-    ArduinoOTA.setPassword("esp8266");
-
-    if (debug_Level > 1) {
-        ArduinoOTA.onStart([]() {
-            Serial.println("Start");
-        });
-
-        ArduinoOTA.onEnd([]() {
-            Serial.println("\nEnd");
-        });
-
-        ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-
-            Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-        });
-
-        ArduinoOTA.onError([](ota_error_t error) {
-                Serial.printf("Error[%u]: ", error);
-                if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-                else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-                else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-                else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-                else if (error == OTA_END_ERROR) Serial.println("End Failed");
-        });
-    }
-
-    ArduinoOTA.begin();
-
-    if (debug_Level > 1) {
-    Serial.println("OTA ready");
-    }
-
     // Handle server requests
     server.on("/",HTTP_GET,handleGet);
 
@@ -295,8 +318,7 @@ void setup() {
 }
 
 void loop() {
-    // Handle remote uploading
-    ArduinoOTA.handle();
+    // Make robot aware of its current direction
     readDirection();
 
     // Handle server
