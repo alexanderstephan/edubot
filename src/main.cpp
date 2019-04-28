@@ -1,41 +1,55 @@
 #include <Arduino.h>
-#include <Servo.h>
-#include <SR04.h>
+#include <Servo.h>  // Servo library
+#include <SR04.h>   // Ultra sonic library
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
-#include <FS.h>
-#include "edubot.h"
-#include <motor.h> 
+#include <FS.h>     // File system
+#include "edubot.h" // Pins are also defined here
+#include <motor.h>  // Small library for handling the H-Bridge
 
+// Credentials of the access point
+#define HOST "edubot"
+#define PASSWORD "12345678"
+
+// Define speed values
+#define MINIMUM_SPEED 200
 #define DEFAULT_SPEED 512
+#define MAX_SPEED 1023
+
+// Define servo values
 #define SERVO_DEFAULT 90
 #define SERVO_RIGHT 45
 #define SERVO_LEFT 135
-#define MINIMUM_SPEED 200
-#define MAX_SPEED 1023
 #define ROTATION_ANGLE 20
-#define HOST "edubot"
-#define PASSWORD "12345678"
+
+// Define tresholds
 #define HAND_DISTANCE 15
 #define TOO_CLOSE 4
 
+// Define debug level for enabling serial output
 #define DEBUG_LEVEL 2
 int debug_Level = DEBUG_LEVEL;
-int currentSpeed = 0; // Make a variable to store the current speed
-float distance;
 
+int currentSpeed = 0; // Make a variable to store the current speed, speed at the start should be zero
+float distance;       // Global variable that keeps track of the current speed
+
+// Initialize objects
 Servo servo1;
 SR04 sr04 = SR04(ECHO_PIN,TRIG_PIN);
 
+// Initialize driving states
 drivingState_t d_State = {
-    NONE,
-    0,
-    0,
-    IDLE
+    NONE,       // Direction
+    0,          // Speed A
+    0,          // Speed B
+    0,          // Previous speed A
+    0,          // Previous speed B
+    IDLE        // Current mode
 };
 
 ESP8266WebServer server(80); // Start HTTP server at port 80
 
+// Force driving modes for continous execution
 void setMode(drivingMode_t alteredMode) {
     if(alteredMode == d_State.mode) {
         d_State.mode = IDLE;
@@ -52,33 +66,38 @@ void getDistance() {
     Serial.println("cm");
     delay(50);
 }
- 
+
+// Bring servo back in a default middle position
+void initServo(int servoPos) {
+    servo1.write(servoPos);
+}
+
+ // Continous servo movement
 void turnServo(int servoDegree) {
     // Start rotation from the middle
     int pos = SERVO_DEFAULT;
     int turnDegree = servoDegree;
 
     // Rotate until rotation limit is reached
-    for(pos=(SERVO_DEFAULT-servoDegree); pos<=(SERVO_DEFAULT+servoDegree); pos++) {
+    for(pos=(SERVO_DEFAULT-turnDegree); pos<=(SERVO_DEFAULT+turnDegree); pos++) {
         servo1.write(pos);  
-        delay(15);
+        delay(50);
       }
     // If limit is reached, count backwards
-    for(pos=(SERVO_DEFAULT-turnDegree); pos>=(SERVO_DEFAULT-turnDegree); pos--) {
+    for(pos=(SERVO_DEFAULT+turnDegree); pos>=(SERVO_DEFAULT-turnDegree); pos--) {
         servo1.write(pos);
-        delay(15);
+        delay(50);
       }
+    delay(1500);
 }
 
-void initServo(int servoPos) {
-    servo1.write(servoPos);    // Set servo in a middle position
-}
+/*********************************************************
+********************** Driving modes *********************
+*********************************************************/
 
 // Obstacle avoidance mode
 void collisionHandling() {
     distance = sr04.Distance();
-    driveForward();
-    turnServo(20);
     // If ultrasonic distance is less than 10 perform a obstacle avoidance routine, else proceed driving
     if (distance > 0.0) {
         if (distance <= 10.0) {     
@@ -87,7 +106,8 @@ void collisionHandling() {
             delay(500);                                      
             do {
                     delay(40);
-                    turnDir(RIGHT, 600);            // Turn right until the object is out of sight
+                    driveWheels(DEFAULT_SPEED, DEFAULT_SPEED);
+                    turnDir(RIGHT, 250);            // Turn right until the object is out of sight
                     distance = sr04.Distance();     // Update distance
             } 
             while (distance < 20.0);
@@ -95,19 +115,12 @@ void collisionHandling() {
             if( debug_Level > 1) {
                 Serial.println("Avoided obstacle!");
             }
-            // If threshold is reached wait a little to to see if the obstacle distance stays above 10cm
-            handBrake();
-            turnServo(20);                                   
-            delay(500);
-            driveForward(); // Continue driving forward
-        } else if (distance > 20.0) {
-            analogWrite(MOTOR_A_SPEED, DEFAULT_SPEED);
-            analogWrite(MOTOR_B_SPEED, DEFAULT_SPEED);
-            driveForward();
+            
+        } else if (distance < 20.0) {
+            // Continue driving while seaching for obstacles
+            driveWheels(DEFAULT_SPEED, DEFAULT_SPEED);
         } else {
-            analogWrite(MOTOR_A_SPEED, MAX_SPEED);
-            analogWrite(MOTOR_B_SPEED, MAX_SPEED);
-            driveForward();
+            driveWheels(MAX_SPEED, MAX_SPEED);
         }
     }
     delay(40);
@@ -171,6 +184,11 @@ void followHand() {
 void turnTowardsHand() {
     
 }
+
+/*********************************************************
+********************** Server Stuff **********************
+*********************************************************/
+
 String prepareHtmlPage() {
         String htmlPage;                                // Init string
         File f = SPIFFS.open("/edubot.html","r");       // Open file
@@ -193,15 +211,16 @@ String prepareHtmlPage() {
 }
 
 void handleGet(){
-    if(server.args()>0) {
+    if(server.args()>0) { // If there is an valid argument
         if(server.hasArg("speed")) {
             if (debug_Level > 2){
                 Serial.println(server.arg("speed").toInt());      // Log current speed
             }
-            /* Convert text to integer and set motor speed accordingly */
+            // Convert string to integer and set motor speed accordingly
             d_State.speedA = server.arg("speed").toInt();
             d_State.speedB = server.arg("speed").toInt();
-            analogWrite(MOTOR_A_SPEED, abs(d_State.speedA));
+            // Set current speed values
+            analogWrite(MOTOR_A_SPEED, abs(d_State.speedA)); 
             analogWrite(MOTOR_B_SPEED, abs(d_State.speedB)); 
         }
     }
@@ -236,12 +255,13 @@ void setup() {
     // Start file system
     SPIFFS.begin();
 
-     // Initialize servo pin
+    // Initialize servo pin
     servo1.attach(12);
 
+    // Initialize struct with adress
     init(&d_State);
 
-     // Set all motor pins as outout
+    // Set all motor pins as outout
     pinMode(MOTOR_A_SPEED, OUTPUT);
     pinMode(MOTOR_A_ENABLE1, OUTPUT);
     pinMode(MOTOR_A_ENABLE2, OUTPUT);
@@ -269,10 +289,11 @@ void setup() {
     // Handle server requests
     server.on("/",HTTP_GET,handleGet);
 
+    // Serve local files to server
     server.serveStatic("/main.css", SPIFFS, "/main.css");
     server.serveStatic("/jquery.min.js", SPIFFS, "/jquery.min.js");
 
-    // Handle controls
+    // Handle events and send HTTP post code on success
     server.on("/forward", []() {
         driveForward();
         server.send(204);
@@ -285,6 +306,9 @@ void setup() {
 
     server.on("/auto", []() {
         setMode(AUTO);
+        if (debug_Level > 1) {
+            Serial.println("Toggle auto");
+        }
         server.send(204);
     });
 

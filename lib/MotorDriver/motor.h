@@ -17,9 +17,12 @@ typedef struct drivingState {
     direction_t dir;
     int speedA;
     int speedB;
+    int prevA;
+    int prevB;
     drivingMode_t mode;
 } drivingState_t;
 
+void driveWheels(int valLeft, int valRight);
 void getDirection(direction_t);
 void setMode(drivingMode_t alteredMode);
 void driveForward();
