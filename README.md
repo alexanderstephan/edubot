@@ -24,7 +24,7 @@ The robot has the basic ability to be controlled manually as well as an obstacle
 
 ## Possible excercises
 - Make robot drive in a circle
-- Make robot drive in zick zack pattern
+- Make robot drive in zigzag pattern
 - Make a basic obstacle recognition
 - Implement simple motor logic
 

@@ -1,3 +1,10 @@
+/*************************************************************************
+ * NAME: Edubot
+ * AUTHOR: Alexander Stephan
+ * SPECIAL THANKS: Max W., Markus Knapp and Robotfreak
+ * DECRIPTION: Wirelessly controlled robot that can drive autonomously            
+*************************************************************************/
+
 #include <Arduino.h>
 #include <Servo.h>  // Servo library
 #include <SR04.h>   // Ultra sonic library
@@ -186,7 +193,7 @@ void turnTowardsHand() {
 }
 
 /*********************************************************
-********************** Server Stuff **********************
+************************* Server *************************
 *********************************************************/
 
 String prepareHtmlPage() {
@@ -247,6 +254,11 @@ void handleNotFound() {
 
     server.send(404, "text/plain", message);
 }
+
+
+/*********************************************************
+************************* Basics *************************
+*********************************************************/
 
 void setup() {
     // Initialize serial port
