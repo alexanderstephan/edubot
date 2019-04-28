@@ -4,7 +4,8 @@
 1. [Overview](#Overview)
 2. [How To Build](#how-to-build)
 3. [Wiring](#Wiring)
-4. [To Do List](#to-do-list)
+4. [Excercises](#possible-excercises)
+5. [To Do List](#to-do-list)
 
 ### Overview
 I started the project as a project paper for my school. The acrylic chassis is from watterott.com and has a nice corresponding book from Markus Knapp called 'Building Robots With Arduino'. 
@@ -20,6 +21,12 @@ The robot has the basic ability to be controlled manually as well as an obstacle
 - To access the control interface connect to the AP with the specified password and navigate your browser to APs IP probably `192.168.4.1`
 ### Wiring
 ![Schematic](https://raw.githubusercontent.com/alexanderstephan/edubot/master/edubot_bb.png)
+
+### Possible excercises
+- Make robot drive in a circle
+- Make robot drive in zick zack pattern
+- Make a basic obstacle recognition
+- Implement simple motor logic
 
 ### To do list
 - ~~Adding a local jquery/AJAX file with SPLIFF~~
