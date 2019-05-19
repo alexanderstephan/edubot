@@ -7,6 +7,12 @@ int debugLevel = DEBUG_LEVEL;
 
 drivingState_t *dState = NULL; 
 
+void init(drivingState_t *state){
+    dState=state;
+}
+
+/*  Motor logic   */
+
 void driveWheels(int valLeft, int valRight) {
     if (valLeft < 0) {
         digitalWrite(MOTOR_A_ENABLE1, HIGH);
@@ -72,6 +78,8 @@ void readDirection() {
     }
 
 }
+
+/*  Basic movements  */
 
 void driveForward() {
     if(dState->speedA == 0 && dState->speedB == 0) {
@@ -178,8 +186,4 @@ void turnLeft() {
         turnDir(LEFT,250);
         handBrake();
     }
-}
-
-void init(drivingState_t *state){
-    dState=state;
 }
