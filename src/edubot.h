@@ -19,7 +19,7 @@ void collisionHandling();
 void driveSpiral();
 
 /* Server */
-//String prepareHtmlPage();
+String prepareHtmlPage();
 void handleGet();
 void handleNotFound();
 
