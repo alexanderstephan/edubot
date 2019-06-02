@@ -12,7 +12,6 @@
 void getDistance();
 
 /* Robot movement */
-
 void initServo();
 void turnServo();
 void collisionHandling();
