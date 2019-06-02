@@ -24,4 +24,3 @@ void handleGet();
 void handleNotFound();
 
 #endif //EDUBOT_EDUBOT_H
-
