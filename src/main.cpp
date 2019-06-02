@@ -1,9 +1,9 @@
-/*************************************************************************
- * NAME: Edubot
- * AUTHOR: Alexander Stephan
- * SPECIAL THANKS: Max W., Markus Knapp and Robotfreak
- * DECRIPTION: Wirelessly controlled robot that can drive autonomously            
-*************************************************************************/
+/*------------------------------------------------------------------------------
+* NAME: Edubot
+* AUTHOR: Alexander Stephan
+* DESCRIPTION: Wirelessly controlled robot with the ability to drive autonomously
+* SPECIAL THANKS: Max W., Markus Knapp and Robotfreak
+------------------------------------------------------------------------------*/
 
 #include <Arduino.h>
 #include <Servo.h>  // Servo library
@@ -11,7 +11,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <FS.h>     // File system
-#include "edubot.h" // Pins are also defined here
+#include "edubot.h" // Pins are defined here
 #include <motor.h>  // Small library for handling the H-Bridge
 
 // Credentials of the access point
@@ -79,7 +79,7 @@ void initServo(int servoPos) {
     servo1.write(servoPos);
 }
 
- // Continous servo movement
+// Servo movement
 void turnServo(int servoDegree) {
     // Start rotation from the middle
     int pos = SERVO_DEFAULT;
@@ -98,11 +98,8 @@ void turnServo(int servoDegree) {
     delay(1500);
 }
 
-/*********************************************************
-********************** Driving modes *********************
-*********************************************************/
+/*  Driving modes */
 
-// Obstacle avoidance mode
 void collisionHandling() {
     distance = sr04.Distance();
     // If ultrasonic distance is less than 10 perform a obstacle avoidance routine, else proceed driving
@@ -162,9 +159,8 @@ int searchHand() {
         for (int servoPosition = SERVO_LEFT; servoPosition <= SERVO_RIGHT; servoPosition++) {
             servo1.write(servoPosition);
             delay(10);
-
             distance = sr04.Distance(); 
-        
+
             if (distance <= HAND_DISTANCE) {
                 handPosition = servoPosition;
                 return handPosition;
@@ -185,16 +181,13 @@ void followHand() {
     } while ((distance <= HAND_DISTANCE) && (distance <= TOO_CLOSE));
     handBrake();
     delay(1000);
-
 }
 
 void turnTowardsHand() {
     
 }
 
-/*********************************************************
-************************* Server *************************
-*********************************************************/
+/*  Server */
 
 String prepareHtmlPage() {
         String htmlPage;                                // Init string
@@ -255,10 +248,7 @@ void handleNotFound() {
     server.send(404, "text/plain", message);
 }
 
-
-/*********************************************************
-************************* Basics *************************
-*********************************************************/
+/* Basics */
 
 void setup() {
     // Initialize serial port
