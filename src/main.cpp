@@ -35,8 +35,8 @@
 
 // Define debug level for enabling serial output
 #define DEBUG_LEVEL 2
-int debug_Level = DEBUG_LEVEL;
 
+int debug_Level = DEBUG_LEVEL;
 int currentSpeed = 0; // Make a variable to store the current speed, speed at the start should be zero
 float distance;       // Global variable that keeps track of the current speed
 
