@@ -1,9 +1,9 @@
-/*------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------------
 * NAME: Edubot
 * AUTHOR: Alexander Stephan
 * DESCRIPTION: Wirelessly controlled robot with the ability to drive autonomously
 * SPECIAL THANKS: Max W., Markus Knapp and Robotfreak
-------------------------------------------------------------------------------*/
+----------------------------------------------------------------------------------*/
 
 #include <Arduino.h>
 #include <Servo.h>  // Servo library
