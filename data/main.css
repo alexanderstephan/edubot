@@ -8,18 +8,52 @@ body {
 	background-color: #121212;
 }
 
+.icon {
+  display: inline-block;
+  width: 0.2em;
+  height: 0.2em;
+  stroke-width: 0;
+  stroke: currentColor;
+  fill: currentColor;
+}
+
 button {
 	background-color: #03DAC6;
 	border: none;
-	color: #000000;
-	padding: 15px 32px;
+	color: white;
+	padding: 10px 15px;
 	text-align: center;
 	text-decoration: none;
 	display: inline-block;
-	font-size: 16px;
+	text-transform: uppercase;
 	margin-left: 10px;
 	margin-right: 10px;
 	margin-top: 20px;
 	margin-bottom: 20px;
+	width: 160px;
+}
+.nav {
+	 background-color:rgba(0,0,0,0);
+	 margin-left: 0px;
+	 margin-right: 0px;
+	 margin-top: 0px;
+	 margin-bottom: 0px;
+	 width: 90px;
+}
+.icon-chevron-right {
+	font-size: 200px;
+	margin-left: 20px;
 }
 
+.icon-chevron-left {
+	margin-right: 20px;
+	font-size: 200px
+}
+
+.icon-chevron-up {
+	font-size: 200px;
+}
+
+.icon-chevron-down {
+  font-size: 200px
+}
