@@ -33,6 +33,7 @@ button {
 	width: 160px;
 }
 .nav {
+	padding: 10px 10px;
 	 background-color:rgba(0,0,0,0);
 	 margin-left: 0px;
 	 margin-right: 0px;
@@ -42,18 +43,23 @@ button {
 }
 .icon-chevron-right {
 	font-size: 200px;
-	margin-left: 20px;
+	padding-top: 4px;
+	margin-left: 25px;
 }
 
 .icon-chevron-left {
-	margin-right: 20px;
-	font-size: 200px
+	font-size: 200px;
+	margin-right: 25px;
+	padding-top: 4px;
 }
 
 .icon-chevron-up {
 	font-size: 200px;
+	margin-bottom: 5px;
 }
 
 .icon-chevron-down {
+	margin-top: 5px;
+	padding-bottom: 5px;
   font-size: 200px
 }
