@@ -29,10 +29,6 @@ The robot has the basic ability to be controlled manually as well as an obstacle
 - Implement simple motor logic
 
 ## To do list
-- ~~Adding a local jquery/AJAX file with SPLIFF~~
-- ~~Fixing issue with random connection reset~~
-- ~~Finishing the spiral routine~~
-- Make "Auto-Mode" button show current mode
-- Make turning movements smoother
 - Add 100nF capacitors to both gear motors
 - Add resistor to ultra sonic sensor
+- Wheels do not have exactly the same speed
