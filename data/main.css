@@ -74,3 +74,8 @@ button {
 h1 {
 	padding-top: 15px;
 }
+
+#logo {
+	padding-bottom: 15px;
+	color: white;
+}
