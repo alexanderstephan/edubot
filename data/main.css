@@ -1,28 +1,28 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto');
 html {
-	font-family: 'roboto', sans-serif; 
+	font-family: 'roboto', sans-serif;
 	text-transform: uppercase;
 }
 
 body {
-	background-color: #fdd835;
-}	
+	background-color: #121212;
+}
 
-button { 
-	background-color: #4CAF50;
-	border: none; 
-	color: white;
-	padding: 15px 32px; 
-	text-align: center; 
-	text-decoration: none; 
-	display: inline-block; 
-	font-size: 16px; 
-	margin-left: 10px; 
-	margin-right: 10px; 
-	margin-top: 20px; 
+button {
+	background-color: #03DAC6;
+	border: none;
+	color: #FFFFFF;
+	padding: 15px 32px;
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+	font-size: 16px;
+	margin-left: 10px;
+	margin-right: 10px;
+	margin-top: 20px;
 	margin-bottom: 20px;
 }
 
 .toggleButton.pressed {
-	background-color: red;
+	background-color: #CF6679;
 }

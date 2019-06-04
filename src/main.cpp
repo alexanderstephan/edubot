@@ -167,6 +167,7 @@ int searchHand() {
             }
         }
     } while (distance > HAND_DISTANCE); // Search while hand is not within reach
+    return 0;
 }
 
 void followHand() {

@@ -5,13 +5,14 @@
 #define DEBUG_LEVEL 2
 int debugLevel = DEBUG_LEVEL;
 
-drivingState_t *dState = NULL; 
+drivingState_t *dState = NULL;
 
 void init(drivingState_t *state){
     dState=state;
 }
 
 /*  Motor logic   */
+
 void driveWheels(int valLeft, int valRight) {
     if (valLeft < 0) {
         digitalWrite(MOTOR_A_ENABLE1, HIGH);
@@ -36,7 +37,7 @@ void driveWheels(int valLeft, int valRight) {
         digitalWrite(MOTOR_A_ENABLE1, HIGH);
         digitalWrite(MOTOR_A_ENABLE2, HIGH);
         dState->speedB  = 0;
-        
+
     }
     if (valRight == 0) {
         digitalWrite(MOTOR_B_ENABLE1, HIGH);
@@ -52,7 +53,7 @@ void readDirection() {
         dState->dir = FORWARD;
          if (debugLevel > 1) {
             Serial.println("Forward");
-        } 
+        }
     }
     else if (dState->speedA < 0  && dState->speedB < 0) {
         dState->dir = BACKWARD;
@@ -64,7 +65,7 @@ void readDirection() {
         dState->dir = RIGHT;
         if (debugLevel > 1) {
             Serial.println("Right");
-        }   
+        }
     }
     else if (dState->speedA < 0 && dState->speedB > 0) {
         dState->dir = LEFT;
@@ -79,6 +80,7 @@ void readDirection() {
 }
 
 /*  Basic movements  */
+
 void driveForward() {
     if(dState->speedA == 0 && dState->speedB == 0) {
         driveWheels(abs(dState->prevA), abs(dState->prevB));
@@ -172,13 +174,13 @@ void turnLeft() {
         handBrake();
         delay(200);
         driveForward();
-    } 
+    }
     else if(dState->dir == BACKWARD) {
         turnDir(LEFT,250);
         handBrake();
         delay(200);
         driveBackward();
-    } 
+    }
     else {
         driveWheels(800, 800);
         turnDir(LEFT,250);
