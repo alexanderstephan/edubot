@@ -87,7 +87,7 @@ void turnServo(int servoDegree) {
 
     // Rotate until rotation limit is reached
     for(pos=(SERVO_DEFAULT-turnDegree); pos<=(SERVO_DEFAULT+turnDegree); pos++) {
-        servo1.write(pos);  
+        servo1.write(pos);
         delay(50);
       }
     // If limit is reached, count backwards
@@ -104,22 +104,22 @@ void collisionHandling() {
     distance = sr04.Distance();
     // If ultrasonic distance is less than 10 perform a obstacle avoidance routine, else proceed driving
     if (distance > 0.0) {
-        if (distance <= 10.0) {     
+        if (distance <= 10.0) {
             // Wait if the sensor value stabilizes
-            handBrake();   
-            delay(500);                                      
+            handBrake();
+            delay(500);
             do {
                     delay(40);
                     driveWheels(DEFAULT_SPEED, DEFAULT_SPEED);
                     turnDir(RIGHT, 250);            // Turn right until the object is out of sight
                     distance = sr04.Distance();     // Update distance
-            } 
+            }
             while (distance < 20.0);
 
             if( debug_Level > 1) {
                 Serial.println("Avoided obstacle!");
             }
-            
+
         } else if (distance < 20.0) {
             // Continue driving while seaching for obstacles
             driveWheels(DEFAULT_SPEED, DEFAULT_SPEED);
@@ -138,20 +138,20 @@ int searchHand() {
     delay(500);
     initServo(SERVO_RIGHT);
 
-    do { 
+    do {
         for (int servoPosition = SERVO_RIGHT; servoPosition >= SERVO_LEFT; servoPosition--) {
             // Set servo position
-            servo1.write(servoPosition); 
+            servo1.write(servoPosition);
 
             // Make sure servo isn't turning too fast
             delay(10);
 
             // Update sensor value
-            distance = sr04.Distance(); 
+            distance = sr04.Distance();
 
             // If hand position detected return it as an integer
-            if (distance <= HAND_DISTANCE) { 
-                handPosition = servoPosition;  
+            if (distance <= HAND_DISTANCE) {
+                handPosition = servoPosition;
                 return handPosition;
             }
         }
@@ -159,7 +159,7 @@ int searchHand() {
         for (int servoPosition = SERVO_LEFT; servoPosition <= SERVO_RIGHT; servoPosition++) {
             servo1.write(servoPosition);
             delay(10);
-            distance = sr04.Distance(); 
+            distance = sr04.Distance();
 
             if (distance <= HAND_DISTANCE) {
                 handPosition = servoPosition;
@@ -185,7 +185,7 @@ void followHand() {
 }
 
 void turnTowardsHand() {
-    
+
 }
 
 /*  Server */
@@ -199,7 +199,7 @@ String prepareHtmlPage() {
             Serial.println("Error reading .html file!");
             }
         }
-    
+
         // Read file into string
         else {
             htmlPage = f.readString();
@@ -221,8 +221,8 @@ void handleGet(){
             d_State.speedA = server.arg("speed").toInt();
             d_State.speedB = server.arg("speed").toInt();
             // Set current speed values
-            analogWrite(MOTOR_A_SPEED, abs(d_State.speedA)); 
-            analogWrite(MOTOR_B_SPEED, abs(d_State.speedB)); 
+            analogWrite(MOTOR_A_SPEED, abs(d_State.speedA));
+            analogWrite(MOTOR_B_SPEED, abs(d_State.speedB));
         }
     }
     else {
@@ -268,11 +268,11 @@ void setup() {
     pinMode(MOTOR_A_SPEED, OUTPUT);
     pinMode(MOTOR_A_ENABLE1, OUTPUT);
     pinMode(MOTOR_A_ENABLE2, OUTPUT);
-    
-    pinMode(MOTOR_B_SPEED, OUTPUT); 
+
+    pinMode(MOTOR_B_SPEED, OUTPUT);
     pinMode(MOTOR_B_ENABLE1, OUTPUT);
     pinMode(MOTOR_B_ENABLE2, OUTPUT);
-    
+
     // Use access point mode
     WiFi.mode(WIFI_AP);
 
@@ -309,10 +309,17 @@ void setup() {
 
     server.on("/auto", []() {
         setMode(AUTO);
-        if (debug_Level > 1) {
-            Serial.println("Toggle auto");
+	if (d_State.mode == AUTO) {
+		String autoPressed = prepareHtmlPage() += "<style>.auto { background-color: #CF6679 !important; }</style>";
+		server.send(200 ,"text/html", autoPressed);
+	}
+	else {
+		handBrake();
+		server.send(200, "text/html", prepareHtmlPage());
+	}
+	if (debug_Level > 1) {
+            Serial.println("Toggled auto");
         }
-        server.send(204);
     });
 
     server.on("/left", []() {
@@ -367,4 +374,4 @@ void loop() {
         }
         break;
     }
-} 
+}

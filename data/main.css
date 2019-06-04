@@ -11,7 +11,7 @@ body {
 button {
 	background-color: #03DAC6;
 	border: none;
-	color: #FFFFFF;
+	color: #000000;
 	padding: 15px 32px;
 	text-align: center;
 	text-decoration: none;
@@ -23,6 +23,3 @@ button {
 	margin-bottom: 20px;
 }
 
-.toggleButton.pressed {
-	background-color: #CF6679;
-}
