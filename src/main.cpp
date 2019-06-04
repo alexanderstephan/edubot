@@ -56,11 +56,11 @@ drivingState_t d_State = {
 
 ESP8266WebServer server(80); // Start HTTP server at port 80
 
-// Force driving modes for continous execution
+// Force driving modes
 void setMode(drivingMode_t alteredMode) {
     if(alteredMode == d_State.mode) {
         d_State.mode = IDLE;
-        }
+    }
     else {
         d_State.mode = alteredMode;
     }
@@ -68,7 +68,7 @@ void setMode(drivingMode_t alteredMode) {
 
 // Read ultrasonic sensor in cm and print log
 void getDistance() {
-    distance=sr04.Distance();
+    distance = sr04.Distance();
     Serial.print(distance);
     Serial.println("cm");
     delay(50);
@@ -81,22 +81,25 @@ void initServo(int servoPos) {
 
 // Servo movement
 void turnServo(int servoDegree) {
-    // Start rotation from the middle
-    int pos = SERVO_DEFAULT;
-    int turnDegree = servoDegree;
 
-    // Rotate until rotation limit is reached
-    for(pos=(SERVO_DEFAULT-turnDegree); pos<=(SERVO_DEFAULT+turnDegree); pos++) {
-        servo1.write(pos);
-        delay(50);
-      }
-    // If limit is reached, count backwards
-    for(pos=(SERVO_DEFAULT+turnDegree); pos>=(SERVO_DEFAULT-turnDegree); pos--) {
-        servo1.write(pos);
-        delay(50);
-      }
-    delay(1500);
-}
+    // Start rotation from the middle
+    int turnDegree = servoDegree;
+    int pos=(SERVO_DEFAULT-turnDegree);
+
+    do {
+            pos++;
+            servo1.write(pos);
+            distance = sr04.Distance();
+            delay(25);
+        } while( pos<=(SERVO_DEFAULT+turnDegree) && distance > 10.0);
+
+     do {
+            pos--;
+            servo1.write(pos);
+            distance = sr04.Distance();
+            delay(25);
+        } while( pos>=(SERVO_DEFAULT-turnDegree) && distance > 10.0);
+}   
 
 /*  Driving modes */
 
@@ -108,26 +111,24 @@ void collisionHandling() {
             // Wait if the sensor value stabilizes
             handBrake();
             delay(500);
+            distance = sr04.Distance();
             do {
-                    delay(40);
-                    driveWheels(DEFAULT_SPEED, DEFAULT_SPEED);
-                    turnDir(RIGHT, 250);            // Turn right until the object is out of sight
-                    distance = sr04.Distance();     // Update distance
+                delay(40);
+                driveWheels(DEFAULT_SPEED, DEFAULT_SPEED);
+                turnDir(RIGHT, 500);            // Turn right until the object is out of sight
+                distance = sr04.Distance();     // Update distance
             }
             while (distance < 20.0);
-
             if( debug_Level > 1) {
                 Serial.println("Avoided obstacle!");
             }
-
-        } else if (distance < 20.0) {
-            // Continue driving while seaching for obstacles
+        } else if (distance > 10.0) {
+            // Continue driving while searching for obstacles
             driveWheels(DEFAULT_SPEED, DEFAULT_SPEED);
-        } else {
-            driveWheels(MAX_SPEED, MAX_SPEED);
+            turnServo(30);
         }
     }
-    delay(40);
+    delay(10);
 }
 
 // Make robot behave like a pet by following the owners hand
@@ -302,6 +303,21 @@ void setup() {
         server.send(204);
     });
 
+    server.on("/left", []() {
+        turnLeft();
+        server.send(204);
+    });
+
+    server.on("/right",[]() {
+        turnRight();
+        server.send(204);
+     });
+    
+    server.on("/backward", []() {
+        driveBackward();
+        server.send(204);
+    });
+
     server.on("/stop",[]() {
         handBrake();
         server.send(204);
@@ -315,30 +331,23 @@ void setup() {
 	}
 	else {
 		handBrake();
-		server.send(200, "text/html", prepareHtmlPage());
+		server.send(200, "text/html", prepareHtmlPage()); // Maybe redirect to / here instead of /auto
 	}
 	if (debug_Level > 1) {
             Serial.println("Toggled auto");
         }
     });
 
-    server.on("/left", []() {
-        turnLeft();
-        server.send(204);
-    });
-
-    server.on("/right",[]() {
-        turnRight();
-        server.send(204);
-     });
-
     server.on("/follow",[]() {
         setMode(FOLLOW);
-        server.send(204);
-    });
-
-    server.on("/backwards", []() {
-        driveBackward();
+        if (d_State.mode == FOLLOW) {
+		    String followPressed = prepareHtmlPage() += "<style>.follow { background-color: #CF6679 !important; }</style>";
+		    server.send(200 ,"text/html", followPressed);
+	}
+	else {
+		handBrake();
+		server.send(200, "text/html", prepareHtmlPage());
+	}
         server.send(204);
     });
 

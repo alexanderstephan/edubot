@@ -9,12 +9,14 @@ body {
 }
 
 .icon {
-  display: inline-block;
-  width: 0.2em;
-  height: 0.2em;
-  stroke-width: 0;
-  stroke: currentColor;
-  fill: currentColor;
+	display: inline-block;
+	width: 0.2em;
+	height: 0.2em;
+	stroke-width: 0;
+	stroke: currentColor;
+	fill: currentColor;
+	font-size: 250px;
+
 }
 
 button {
@@ -23,6 +25,7 @@ button {
 	color: white;
 	padding: 10px 15px;
 	text-align: center;
+	font-size: 16px;
 	text-decoration: none;
 	display: inline-block;
 	text-transform: uppercase;
@@ -30,36 +33,39 @@ button {
 	margin-right: 10px;
 	margin-top: 20px;
 	margin-bottom: 20px;
+	height: 70px;
 	width: 160px;
 }
+
 .nav {
 	padding: 10px 10px;
-	 background-color:rgba(0,0,0,0);
-	 margin-left: 0px;
-	 margin-right: 0px;
-	 margin-top: 0px;
-	 margin-bottom: 0px;
-	 width: 90px;
+	background-color:rgba(0,0,0,0);
+	margin-left: 0px;
+	margin-right: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	color: #CF6679;
 }
+
 .icon-chevron-right {
-	font-size: 200px;
-	padding-top: 4px;
-	margin-left: 25px;
+	width: 30px;
+	height:30px;
 }
 
 .icon-chevron-left {
-	font-size: 200px;
-	margin-right: 25px;
-	padding-top: 4px;
+	width: 30px;
+	height:30px;
 }
 
 .icon-chevron-up {
-	font-size: 200px;
-	margin-bottom: 5px;
+	width: 30px;
+	height:30px;
+	margin-bottom: 30px;
 }
 
 .icon-chevron-down {
-	margin-top: 5px;
-	padding-bottom: 5px;
-  font-size: 200px
+	margin-top: 20px;
+	margin-bottom: 20px;
+	width: 30px;
+	height:30px;
 }

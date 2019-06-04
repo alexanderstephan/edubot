@@ -10,16 +10,16 @@
 #define MOTOR_B_ENABLE1 5  // in3                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
 #define MOTOR_B_ENABLE2 4  // in42
  
-typedef enum {LEFT, RIGHT, FORWARD, BACKWARD, NONE} direction_t;
-typedef enum {AUTO, FOLLOW, IDLE} drivingMode_t;
+typedef enum {LEFT, RIGHT, FORWARD, BACKWARD, NONE} direction_t;    // To keep track of current direction
+typedef enum {AUTO, FOLLOW, IDLE} drivingMode_t;    // To keep track of the three driving modes
 
 typedef struct drivingState {
-    direction_t dir;
-    int speedA;
+    direction_t dir; // Check out direction
+    int speedA; // Monitor current speed
     int speedB;
-    int prevA;
+    int prevA;  // Save speed in these variables to restore previous speeds
     int prevB;
-    drivingMode_t mode;
+    drivingMode_t mode; /// Check out driving mode
 } drivingState_t;
 
 void driveWheels(int valLeft, int valRight);
