@@ -20,9 +20,6 @@ The robot has the basic ability to be controlled manually as well as an obstacle
 - `cd edubot && platformio run -t upload` (You can specify upload_port in platform.ini)
 - To access the control interface connect to the AP with the specified password and navigate your browser to APs IP probably `192.168.4.1`
 
-## Interface
-![Interface](https://raw.githubusercontent.com/alexanderstephan/edubot/master/screenshot.png)
-
 ## Wiring
 ![Schematic](https://raw.githubusercontent.com/alexanderstephan/edubot/master/edubot_bb.png)
 
@@ -36,3 +33,6 @@ The robot has the basic ability to be controlled manually as well as an obstacle
 - Add 100nF capacitors to both gear motors
 - Add resistor to ultra sonic sensor
 - Wheels do not have exactly the same speed
+
+## Interface
+![Interface](https://raw.githubusercontent.com/alexanderstephan/edubot/master/screenshot.png)
