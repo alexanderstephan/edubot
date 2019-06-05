@@ -179,13 +179,13 @@ void turnRight() {
 // Same principle as above
 void turnLeft() {
     if(dState->dir == FORWARD) {
-        turnDir(LEFT,250);
+        turnDir(LEFT,100);
         handBrake();
         delay(200);
         driveForward();
     }
     else if(dState->dir == BACKWARD) {
-        turnDir(LEFT,250);
+        turnDir(LEFT,100);
         handBrake();
         delay(200);
         driveBackward();

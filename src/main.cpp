@@ -25,13 +25,13 @@
 
 // Define servo values
 #define SERVO_DEFAULT 90
-#define SERVO_RIGHT 45
-#define SERVO_LEFT 135
-#define ROTATION_ANGLE 20
+#define SERVO_RIGHT 120
+#define SERVO_LEFT 60
 
 // Define tresholds
 #define HAND_DISTANCE 15
 #define TOO_CLOSE 4
+#define MIN_DISTANCE 10
 
 // Define debug level for enabling serial output
 #define DEBUG_LEVEL 2
@@ -80,57 +80,96 @@ void initServo(int servoPos) {
 }
 
 // Servo movement
-void turnServo(int servoDegree) {
-
+void turnServo(int degree) {
     // Start rotation from the middle
-    int turnDegree = servoDegree;
-    int pos=(SERVO_DEFAULT-turnDegree);
-
+    int pos = SERVO_DEFAULT;
+    int turnDegree = degree;
     do {
             pos++;
             servo1.write(pos);
             distance = sr04.Distance();
             delay(25);
-        } while( pos<=(SERVO_DEFAULT+turnDegree) && distance > 10.0);
+        } while(pos <= (SERVO_DEFAULT + turnDegree) && distance > 10.0);
 
      do {
             pos--;
             servo1.write(pos);
             distance = sr04.Distance();
             delay(25);
-        } while( pos>=(SERVO_DEFAULT-turnDegree) && distance > 10.0);
-}   
+        } while(pos >= (SERVO_DEFAULT - turnDegree) && distance > 10.0);
+}                                                                                                                   
 
 /*  Driving modes */
 
+int seekingPositionWithClosestDanger() {
+    handBrake();
+    int pos;
+    int MinDistance = MIN_DISTANCE; // 
+    int MinPos = 0;
+    for(pos = SERVO_RIGHT; pos >= SERVO_LEFT; pos--) {
+        servo1.write(pos);
+        Serial.println("Moving from left to right!");
+        delay(10);
+        distance = sr04.Distance();
+        if(distance < MinDistance) {
+            MinDistance = sr04.Distance();
+            MinPos = pos;
+            Serial.println("Updated minimum!");
+        }
+    }
+    servo1.write(MinPos);
+    return MinPos;
+}
+
 void collisionHandling() {
     distance = sr04.Distance();
+    int dangerPos;
     // If ultrasonic distance is less than 10 perform a obstacle avoidance routine, else proceed driving
     if (distance > 0.0) {
         if (distance <= 10.0) {
             // Wait if the sensor value stabilizes
+            Serial.println("Recognized potential danger!");
+            Serial.println("Seeking danger position!");
+            dangerPos = seekingPositionWithClosestDanger();
+            Serial.print("Obstacle at position ");
+            Serial.println(dangerPos);
             handBrake();
-            delay(500);
+            Serial.println("Stopped robot!");
             distance = sr04.Distance();
-            do {
-                delay(40);
-                driveWheels(DEFAULT_SPEED, DEFAULT_SPEED);
-                turnDir(RIGHT, 500);            // Turn right until the object is out of sight
-                distance = sr04.Distance();     // Update distance
+            if(dangerPos <= SERVO_DEFAULT) {
+                do {
+                    delay(40);
+                    Serial.println("Obstacle on the left!");
+                    driveWheels(DEFAULT_SPEED, DEFAULT_SPEED);
+                    turnDir(RIGHT, 200);            // Turn right until the object is out of sight
+                    distance = sr04.Distance();     // Update distance
+                } while (distance < 15.0);
             }
-            while (distance < 20.0);
-            if( debug_Level > 1) {
-                Serial.println("Avoided obstacle!");
+            else if(dangerPos > SERVO_DEFAULT) {
+                do {
+                    delay(40);
+                    Serial.println("Obstacle on the right!");
+                    driveWheels(DEFAULT_SPEED, DEFAULT_SPEED);
+                    turnDir(LEFT, 200);            // Turn right until the object is out of sight
+                    distance = sr04.Distance();  
+                    Serial.println(distance);
+         
+                } while (distance > 15.0); 
             }
+            Serial.println("Avoided obstacle!");
         } else if (distance > 10.0) {
             // Continue driving while searching for obstacles
+            Serial.println("More or less out of sight!");
             driveWheels(DEFAULT_SPEED, DEFAULT_SPEED);
+            turnServo(40);
+        } else if (distance > 20.0) {
+            Serial.println("Obstacle out of sight!");
+            driveWheels(MAX_SPEED, MAX_SPEED);
             turnServo(30);
         }
+        delay(10);
     }
-    delay(10);
 }
-
 // Make robot behave like a pet by following the owners hand
 int searchHand() {
     distance = sr04.Distance();
