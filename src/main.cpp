@@ -46,6 +46,10 @@ float distance;       // Global variable that keeps track of the current speed
 Servo servo1;
 WRSK_UltrasonicSensor us(ECHO_PIN, TRIG_PIN, DEBUG_LEVEL);
 
+// Start HTTP server at port 80
+// Adress is probably 192.168.178.4
+ESP8266WebServer server(80); 
+
 // Initialize driving states
 drivingState_t d_State = {
     NONE,       // Direction
@@ -55,8 +59,6 @@ drivingState_t d_State = {
     0,          // Previous speed B
     IDLE        // Current mode
 };
-
-ESP8266WebServer server(80); // Start HTTP server at port 80
 
 // Force driving modes
 void setMode(drivingMode_t alteredMode) {
