@@ -1,78 +1,109 @@
-#include "SR04.h"
+#if defined(ARDUINO) && ARDUINO >= 100
+#include "Arduino.h"
+#else
+#include "WProgram.h"
+#endif
 
-SR04::SR04(int echoPin, int triggerPin) {
-    _echoPin = echoPin;
-    _triggerPin = triggerPin;
-    pinMode(_echoPin, INPUT);
-    pinMode(_triggerPin, OUTPUT);
-    _autoMode = false;
-    _distance = 999;
+
+#include "SR04.h" 
+
+WRSK_UltrasonicSensor::WRSK_UltrasonicSensor(int _echoPin, int _triggerPin)
+{
+  this->echoPin = _echoPin;
+  this->triggerPin = _triggerPin;
+  this->dbgLevel = 0;
+  initUltrasonicSensor();
 }
 
-
-long SR04::Distance() {
-    long d = 0;
-    _duration = 0;
-    digitalWrite(_triggerPin, LOW);
-    delayMicroseconds(2);
-    digitalWrite(_triggerPin, HIGH);
-    delayMicroseconds(10);
-    digitalWrite(_triggerPin, LOW);
-    delayMicroseconds(2);
-    _duration = pulseIn(_echoPin, HIGH, PULSE_TIMEOUT);
-    d = MicrosecondsToCentimeter(_duration);
-    delay(25);
-    return d;
+WRSK_UltrasonicSensor::WRSK_UltrasonicSensor(int _echoPin, int _triggerPin, int _dbgLevel)
+{
+  this->echoPin = _echoPin;
+  this->triggerPin = _triggerPin;
+  this->dbgLevel = _dbgLevel;
+  initUltrasonicSensor();
 }
 
-long SR04::DistanceAvg(int wait, int count) {
-    long min, max, avg, d;
-    min = 999;
-    max = 0;
-    avg = d = 0;
-
-    if (wait < 25) {
-        wait = 25;
-    }
-
-    if (count < 1) {
-        count = 1;
-    }
-
-    for (int x = 0; x < count + 2; x++) {
-        d = Distance();
-
-        if (d < min) {
-            min = d;
-        }
-
-        if (d > max) {
-            max = d;
-        }
-
-        avg += d;
-    }
-
-    // substract highest and lowest value
-    avg -= (max + min);
-    // calculate average
-    avg /= count;
-    return avg;
+float WRSK_UltrasonicSensor::read(void)
+{
+  return readcm();
 }
 
-void SR04::Ping() {
-    _distance = Distance();
+float WRSK_UltrasonicSensor::readcm(void)
+{
+  int pulsein;
+  float distance;
+
+  pulsein = readRAW();
+  distance = microsecondsToCentimeters(pulsein);
+  if (distance < 4 && distance > 60)
+  {
+    distance = -1;
+  }/*
+  if (this->dbgLevel > 1) 
+  {
+    Serial.print("Distance: ");
+    Serial.print(distance, DEC);
+    Serial.println(" cm");
+  }*/
+  return distance;
+} 
+
+float WRSK_UltrasonicSensor::readinch(void)
+{
+  int pulsein;
+  float distance;
+
+  pulsein = readRAW();
+  distance = microsecondsToInches(pulsein);
+  if (distance < 2 && distance > 24)
+  {
+    distance = -1;
+  }
+  if (this->dbgLevel > 1) 
+  {
+    Serial.print("Distance: ");
+    Serial.print(distance, DEC);
+    Serial.println(" in");
+  }
+  return distance;
+} 
+
+
+int WRSK_UltrasonicSensor::readRAW(void)
+{
+  int pulsein;
+  // The HC-SR04 is triggered by a HIGH pulse of 10 or more microseconds.
+  digitalWrite(this->triggerPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(this->triggerPin, LOW);
+ 
+  // The same pin is used to read the signal from the HC-SR04 a HIGH
+  // pulse whose duration is the time (in microseconds) from the sending
+  // of the ping to the reception of its echo off of an object.
+  pulsein = pulseIn(this->echoPin, HIGH);
+  return pulsein;
+} 
+
+void WRSK_UltrasonicSensor::initUltrasonicSensor(void)
+{
+  pinMode(this->triggerPin, OUTPUT);
+  pinMode(this->echoPin, INPUT);
+  digitalWrite(this->triggerPin, LOW);
 }
 
-long SR04::getDistance() {
-    return _distance;
+float WRSK_UltrasonicSensor::microsecondsToInches(int microseconds)
+{
+  // According to Parallax's datasheet for the PING))), there are
+  // 73.746 microseconds per inch (i.e. sound travels at 1130 feet per
+  // second).  This gives the distance travelled by the ping, outbound
+  // and return, so we divide by 2 to get the distance of the obstacle.
+  return microseconds / 74.0 / 2.0;
 }
-
-long SR04::MicrosecondsToCentimeter(long duration) {
-    long d = (duration * 100) / 5882;
-    //d = (d == 0)?999:d;
-    return d;
+ 
+float WRSK_UltrasonicSensor::microsecondsToCentimeters(int microseconds)
+{
+  // The speed of sound is 340 m/s or 29 microseconds per centimeter.
+  // The ping travels out and back, so to find the distance of the
+  // object we take half of the distance travelled.
+  return microseconds / 29.0 / 2.0;
 }
-
-
-

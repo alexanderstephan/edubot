@@ -3,16 +3,19 @@
 #include <stdio.h>
 
 #define DEBUG_LEVEL 2   // Global debug variable that determines the amount of logging data
+
 int debugLevel = DEBUG_LEVEL; 
 
 drivingState_t *dState = NULL;  // We need to work the the pointer of the struct
 
-// Had to do this to work the with the struct
 void init(drivingState_t *state){
     dState=state;
 }
 
-/*  Motor logic   */
+/* ------------------------------------------------------
+            Core feature: General motor logic
+-------------------------------------------------------*/
+
 
 // This function reads to sped values and sets the driving direction according to the algebraic sign
 // Maybe this needs refactoring
@@ -79,10 +82,11 @@ void readDirection() {
     else if (dState->speedA == 0 && dState->speedB == 0) { // If both speeds are zero, there is none
         dState->dir = NONE;
     }
-
 }
 
-/*  Basic movements  */
+/* ------------------------------------------------------
+        Basic robot controls via web interface
+-------------------------------------------------------*/
 
 void driveForward() {
     if(dState->speedA == 0 && dState->speedB == 0) {    // If the speed is zero, restore the previous speed
@@ -108,6 +112,17 @@ void driveBackward() {
     }
 }
 
+void handBrake() {
+    // Set all motor pins on HIGH
+    dState->prevA = dState->speedA;
+    dState->prevB = dState->speedB;
+    driveWheels(0,0);
+
+    if( debugLevel > 1) {
+        Serial.println("Robot is stopping...");
+    }
+}
+
 // In order to turn the robot we need a function that changes the wheel direction
 void changeDirA() {
     driveWheels(-abs(dState->speedA),abs(dState->speedB)); // We need to take the absolute value to make sure we have the same reference
@@ -117,15 +132,6 @@ void changeDirB() {
      driveWheels(abs(dState->speedA),-abs(dState->speedB)); // See above
 }
 
-void handBrake() {
-    // Set all motor pins on HIGH
-    dState->prevA = dState->speedA;
-    dState->prevB = dState->speedB;
-    driveWheels(0,0);
-    if( debugLevel > 1) {
-        Serial.println("Robot is stopping...");
-    }
-}
 
 // First of all declare the general function for turning movements. 
 // The turn depends on the parameters direction and turning time
@@ -179,7 +185,7 @@ void turnRight() {
 // Same principle as above
 void turnLeft() {
     if(dState->dir == FORWARD) {
-        turnDir(LEFT,100);
+        turnDir(LEFT,200);
         handBrake();
         delay(200);
         driveForward();
@@ -192,7 +198,7 @@ void turnLeft() {
     }
     else {
         driveWheels(800, 800);
-        turnDir(LEFT,250);
+        turnDir(LEFT,200);
         handBrake();
     }
 }

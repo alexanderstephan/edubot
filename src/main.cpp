@@ -19,9 +19,11 @@
 #define PASSWORD "12345678"
 
 // Define speed values
-#define MINIMUM_SPEED 200
+#define MINIMUM_SPEED 300
 #define DEFAULT_SPEED 512
 #define MAX_SPEED 1023
+#define TURN_SPEED 600
+
 
 // Define servo values
 #define SERVO_DEFAULT 90
@@ -42,7 +44,7 @@ float distance;       // Global variable that keeps track of the current speed
 
 // Initialize objects
 Servo servo1;
-SR04 sr04 = SR04(ECHO_PIN,TRIG_PIN);
+WRSK_UltrasonicSensor us(ECHO_PIN, TRIG_PIN, DEBUG_LEVEL);
 
 // Initialize driving states
 drivingState_t d_State = {
@@ -66,9 +68,9 @@ void setMode(drivingMode_t alteredMode) {
     }
 }
 
-// Read ultrasonic sensor in cm and print log
+// Useful debug function to read the current the distance
 void getDistance() {
-    distance = sr04.Distance();
+    distance = us.read();
     Serial.print(distance);
     Serial.println("cm");
     delay(50);
@@ -79,86 +81,107 @@ void initServo(int servoPos) {
     servo1.write(servoPos);
 }
 
-// Servo movement
+// Just a function to continously rotate the servo within a certain degree
 void turnServo(int degree) {
-    // Start rotation from the middle
-    int pos = SERVO_DEFAULT;
+    int pos = SERVO_DEFAULT;        // Start rotation from the middle
     int turnDegree = degree;
     do {
             pos++;
             servo1.write(pos);
-            distance = sr04.Distance();
+            distance = us.read();
             delay(25);
         } while(pos <= (SERVO_DEFAULT + turnDegree) && distance > 10.0);
 
      do {
             pos--;
             servo1.write(pos);
-            distance = sr04.Distance();
+            distance = us.read();
             delay(25);
         } while(pos >= (SERVO_DEFAULT - turnDegree) && distance > 10.0);
 }                                                                                                                   
 
-/*  Driving modes */
+/* ------------------------------------------------------
+            Core feature: Obstacle avoidance
+-------------------------------------------------------*/
+
+void avoidObstacle(boolean Direction) {
+    handBrake();
+    delay(500);
+    if (Direction == LEFT) {
+        driveWheels(-TURN_SPEED,TURN_SPEED); // See above
+    }
+    else if (Direction == RIGHT) {
+        driveWheels(TURN_SPEED,-TURN_SPEED); // See above
+    }
+    else {
+        Serial.println("Error reading direction!");
+    }
+} 
 
 int seekingPositionWithClosestDanger() {
+    // Stop the robot
     handBrake();
-    int pos;
-    int MinDistance = MIN_DISTANCE; // 
-    int MinPos = 0;
-    for(pos = SERVO_RIGHT; pos >= SERVO_LEFT; pos--) {
-        servo1.write(pos);
-        Serial.println("Moving from left to right!");
-        delay(10);
-        distance = sr04.Distance();
-        if(distance < MinDistance) {
-            MinDistance = sr04.Distance();
-            MinPos = pos;
-            Serial.println("Updated minimum!");
+
+    int servoPos;
+    int minDistance = 100;
+    int minServoPos = 0;
+
+    Serial.println("Moving servo from left to right!");
+
+    for(servoPos = SERVO_RIGHT; servoPos >= SERVO_LEFT; servoPos--) {
+        servo1.write(servoPos);
+        delay(10);  // Wait until servo position is reached
+        if (distance < minDistance) {
+            if (distance > 0.1) {       // Avoid invalid readings
+                minDistance = distance; // Current value is new minimum
+            }
+            minServoPos = servoPos;     // Save servo position
         }
     }
-    servo1.write(MinPos);
-    return MinPos;
+    servo1.write(minServoPos);
+    Serial.print("Minimale Distanz:");
+    Serial.println(minDistance);
+    Serial.print("Servo Position:");
+    Serial.println(minServoPos);
+    return minServoPos;
 }
 
 void collisionHandling() {
-    distance = sr04.Distance();
     int dangerPos;
+    distance = us.read();
+
     // If ultrasonic distance is less than 10 perform a obstacle avoidance routine, else proceed driving
-    if (distance > 0.0) {
-        if (distance <= 10.0) {
+    if (distance > 0.1) {   // Avoid invalid readings
+        if (distance < MIN_DISTANCE) {
             // Wait if the sensor value stabilizes
             Serial.println("Recognized potential danger!");
             Serial.println("Seeking danger position!");
             dangerPos = seekingPositionWithClosestDanger();
             Serial.print("Obstacle at position ");
             Serial.println(dangerPos);
-            handBrake();
             Serial.println("Stopped robot!");
-            distance = sr04.Distance();
+
             if(dangerPos <= SERVO_DEFAULT) {
+                Serial.println("Obstacle on the left1");
+                avoidObstacle(LEFT);
                 do {
-                    delay(40);
-                    Serial.println("Obstacle on the left!");
-                    driveWheels(DEFAULT_SPEED, DEFAULT_SPEED);
-                    turnDir(RIGHT, 200);            // Turn right until the object is out of sight
-                    distance = sr04.Distance();     // Update distance
-                } while (distance < 15.0);
+                    delay(50);
+                } while (us.read() < (MIN_DISTANCE + 3));
             }
-            else if(dangerPos > SERVO_DEFAULT) {
+
+            if(dangerPos > SERVO_DEFAULT) {
+                Serial.println("Obstacle on the left1");
+                avoidObstacle(RIGHT);
                 do {
-                    delay(40);
-                    Serial.println("Obstacle on the right!");
-                    driveWheels(DEFAULT_SPEED, DEFAULT_SPEED);
-                    turnDir(LEFT, 200);            // Turn right until the object is out of sight
-                    distance = sr04.Distance();  
-                    Serial.println(distance);
-         
-                } while (distance > 15.0); 
+                   delay(50);
+                } while (us.read() < (MIN_DISTANCE + 3));
             }
+
+            delay(10);
+
             Serial.println("Avoided obstacle!");
+        // Continue driving while searching for obstacles
         } else if (distance > 10.0) {
-            // Continue driving while searching for obstacles
             Serial.println("More or less out of sight!");
             driveWheels(DEFAULT_SPEED, DEFAULT_SPEED);
             turnServo(40);
@@ -170,9 +193,13 @@ void collisionHandling() {
         delay(10);
     }
 }
-// Make robot behave like a pet by following the owners hand
+
+/* ---------------------------------------------------------
+    Pet mode inspired by Markus Knapp (Work in progress)
+----------------------------------------------------------*/
+
 int searchHand() {
-    distance = sr04.Distance();
+    distance = us.read();
     int handPosition =  0;
     handBrake();
     delay(500);
@@ -187,7 +214,7 @@ int searchHand() {
             delay(10);
 
             // Update sensor value
-            distance = sr04.Distance();
+            distance = us.read();
 
             // If hand position detected return it as an integer
             if (distance <= HAND_DISTANCE) {
@@ -199,7 +226,7 @@ int searchHand() {
         for (int servoPosition = SERVO_LEFT; servoPosition <= SERVO_RIGHT; servoPosition++) {
             servo1.write(servoPosition);
             delay(10);
-            distance = sr04.Distance();
+            distance = us.read();
 
             if (distance <= HAND_DISTANCE) {
                 handPosition = servoPosition;
@@ -217,10 +244,12 @@ void followHand() {
     driveForward();
 
     do {
-        distance = sr04.Distance();
+        distance = us.read();
         delay(10);
     } while ((distance <= HAND_DISTANCE) && (distance <= TOO_CLOSE));
+    
     handBrake();
+    
     delay(1000);
 }
 
@@ -228,8 +257,11 @@ void turnTowardsHand() {
 
 }
 
-/*  Server */
+/* ------------------------------------------------------
+ Everything related to setting up the server and website
+-------------------------------------------------------*/
 
+// This function just reads the web files from the data folder and returns them as a string
 String prepareHtmlPage() {
         String htmlPage;                                // Init string
         File f = SPIFFS.open("/edubot.html","r");       // Open file
@@ -251,6 +283,10 @@ String prepareHtmlPage() {
         return htmlPage;
 }
 
+// This one just listens to any possible changed server arguments
+// Also sends the above generated html string to the server
+// CSS and Java script are provided by serveStatic() in setup (Consistency?)
+// Primarely used for the velocity slider for now
 void handleGet(){
     if(server.args()>0) { // If there is an valid argument
         if(server.hasArg("speed")) {
@@ -271,8 +307,8 @@ void handleGet(){
     }
 }
 
+// In case an error happens,send some whoopsie message to the server
 void handleNotFound() {
-    // Print error in case something goes wrong
     String message = "File Not Found\n\n";
     message += "URI: ";
     message += server.uri();
@@ -289,7 +325,9 @@ void handleNotFound() {
     server.send(404, "text/plain", message);
 }
 
-/* Basics */
+/* ------------------------------------------------------
+                    Basic setup
+-------------------------------------------------------*/
 
 void setup() {
     // Initialize serial port
@@ -364,16 +402,16 @@ void setup() {
 
     server.on("/auto", []() {
         setMode(AUTO);
-	if (d_State.mode == AUTO) {
-		String autoPressed = prepareHtmlPage() += "<style>.auto { background-color: #CF6679 !important; }</style>";
-		server.send(200 ,"text/html", autoPressed);
-	}
-	else {
-		handBrake();
-		server.send(200, "text/html", prepareHtmlPage()); // Maybe redirect to / here instead of /auto
-	}
-	if (debug_Level > 1) {
-            Serial.println("Toggled auto");
+        if (d_State.mode == AUTO) {
+            String autoPressed = prepareHtmlPage() += "<style>.auto { background-color: #CF6679 !important; }</style>";
+            server.send(200 ,"text/html", autoPressed);
+        }
+        else {
+            handBrake();
+            server.send(200, "text/html", prepareHtmlPage()); // Maybe redirect to / here instead of /auto
+        }
+        if (debug_Level > 1) {
+                Serial.println("Toggled auto");
         }
     });
 
@@ -390,13 +428,13 @@ void setup() {
         server.send(204);
     });
 
+    // Tell server what to do in case of an error
     server.onNotFound(handleNotFound);
 
     // Start Server
     server.begin();
-    if(debug_Level > 1) {
-        Serial.println("HTTP server started");
-    }
+
+    Serial.println("HTTP server started");
 }
 
 void loop() {
@@ -405,8 +443,8 @@ void loop() {
 
     // Handle server
     server.handleClient();
-
-    // Force different states for continous execution
+   
+    // Force different states
     switch(d_State.mode){
         case IDLE:
             break;
@@ -417,9 +455,7 @@ void loop() {
             searchHand();
             break;
         default:
-        if( debug_Level > 1) {
             Serial.println("Unregistered Mode!");
-        }
         break;
     }
 }
