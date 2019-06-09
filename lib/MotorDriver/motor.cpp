@@ -16,7 +16,6 @@ void init(drivingState_t *state){
             Core feature: General motor logic
 -------------------------------------------------------*/
 
-
 // This function reads to sped values and sets the driving direction according to the algebraic sign
 // Maybe this needs refactoring
 void driveWheels(int valLeft, int valRight) {
@@ -136,48 +135,71 @@ void changeDirB() {
 // First of all declare the general function for turning movements. 
 // The turn depends on the parameters direction and turning time
 void turnDir(direction_t dir, int time) {
-    // If function argument equals LEFT, perform a right turn
-    if(dir==LEFT) {
-        if( debugLevel > 1) {
-            Serial.println("Turning left");
+    if(dState->dir == FORWARD) {
+        if(dir == LEFT) {
+            if( debugLevel > 1) {
+                Serial.println("Turning left");
+            }
+            driveWheels((0.5*(dState->speedA)), dState->speedB);   // Change orientation of the left wheel
+            delay(time);    // Wait for the turn
+            driveWheels(dState->prevA, dState->speedB);
+        } else if(dir == RIGHT) {
+            if( debugLevel > 1) {
+                Serial.println("Turning right");
+            }
+            driveWheels(dState->speedA, 0.5*(dState->speedB));   // Change orientation of the left wheel
+            delay(time);    // Wait for the turn
+            driveWheels(dState->speedA, dState->prevA);          // Restore speeds
+        }        
+    } else if(dState->dir == BACKWARD) {
+        if(dir == LEFT) {
+            if( debugLevel > 1) {
+                Serial.println("Turning left");
+            }
+            driveWheels((0.5*(dState->speedA)), dState->speedB);   // Change orientation of the left wheel
+            delay(time);    // Wait for the turn
+            driveWheels(dState->prevA, dState->speedB);
+        } else if(dir == RIGHT) {
+            if( debugLevel > 1) {
+                Serial.println("Turning right");
+            }
+            driveWheels(dState->speedA, 0.5*(dState->speedB));   // Change orientation of the left wheel
+            delay(time);    // Wait for the turn
+            driveWheels(dState->speedA, dState->prevB);         // Restore speeds  
         }
-        changeDirA();   // Change orientation of the left wheel
-        delay(time);    // Wait for the turn
-    }
-    // If function argument is RIGHT, perform a right turn
-    else if(dir==RIGHT) {
-        if( debugLevel > 1) {
-            Serial.println("Turning right");
-        }
-        changeDirB();   // Change orientation of the right wheel
-        delay(time);    // Wait for the turn
-    }
-    else {
-        if( debugLevel > 1) {
-        Serial.println("Error reading direction");
-        }
+    } else if (dState->dir == NONE) {
+        if (dir == LEFT) {
+            driveWheels(700, 700);
+            changeDirA();
+            delay(time);
+        } else if (dir == LEFT){
+            driveWheels(700, 700);
+            changeDirB();
+            delay(time);
+        }       
+    } else {
+        Serial.println("Error reading direction!");
     }
 }
 
 // These two function make the robot turn in a fixed direction and degree
 void turnRight() {
-    // If the robot is already moving forward just turn and stop
+    // Since there is no speed set already, we need to set it manually
     if(dState->dir == FORWARD) {
-        turnDir(RIGHT,250);
+        turnDir(RIGHT,300);
         handBrake();
-        delay(20);
+        delay(200);
         driveForward();
     }
     else if(dState->dir == BACKWARD) {
-        turnDir(RIGHT,250);
+        turnDir(RIGHT,300);
         handBrake();
-        delay(20);
+        delay(200);
         driveBackward();
     }
-    // Since there is no speed set already, we need to set it manually
     else {
         driveWheels(800, 800);
-        turnDir(RIGHT,250);
+        turnDir(RIGHT,200);
         handBrake();
     }
 }
@@ -185,13 +207,13 @@ void turnRight() {
 // Same principle as above
 void turnLeft() {
     if(dState->dir == FORWARD) {
-        turnDir(LEFT,200);
+        turnDir(LEFT,300);
         handBrake();
         delay(200);
         driveForward();
     }
     else if(dState->dir == BACKWARD) {
-        turnDir(LEFT,100);
+        turnDir(LEFT,300);
         handBrake();
         delay(200);
         driveBackward();
