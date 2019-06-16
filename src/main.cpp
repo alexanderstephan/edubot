@@ -105,20 +105,6 @@ void turnServo(int degree) {
             Core feature: Obstacle avoidance
 -------------------------------------------------------*/
 
-void avoidObstacle(boolean Direction) {
-    handBrake();
-    delay(500);
-    if (Direction == LEFT) {
-        driveWheels(-TURN_SPEED,TURN_SPEED); // See above
-    }
-    else if (Direction == RIGHT) {
-        driveWheels(TURN_SPEED,-TURN_SPEED); // See above
-    }
-    else {
-        Serial.println("Error reading direction!");
-    }
-} 
-
 int seekingPositionWithClosestDanger() {
     // Stop the robot
     handBrake();
@@ -145,6 +131,20 @@ int seekingPositionWithClosestDanger() {
     Serial.print("Servo Position:");
     Serial.println(minServoPos);
     return minServoPos;
+}
+
+void avoidObstacle(boolean Direction) {
+    handBrake();
+    delay(500);
+    if (Direction == LEFT) {
+        driveWheels(-TURN_SPEED,TURN_SPEED); // See above
+    }
+    else if (Direction == RIGHT) {
+        driveWheels(TURN_SPEED,-TURN_SPEED); // See above
+    }
+    else {
+        Serial.println("Error reading direction!");
+    }
 }
 
 void collisionHandling() {
@@ -178,7 +178,7 @@ void collisionHandling() {
                 } while (us.read() < (MIN_DISTANCE + 3));
             }
 
-            delay(10);
+            delay(200);
 
             Serial.println("Avoided obstacle!");
         // Continue driving while searching for obstacles
@@ -194,6 +194,7 @@ void collisionHandling() {
         delay(10);
     }
 }
+
 
 /* ---------------------------------------------------------
     Pet mode inspired by Markus Knapp (Work in progress)
@@ -338,7 +339,7 @@ void setup() {
     SPIFFS.begin();
 
     // Initialize servo pin
-    servo1.attach(12);
+    servo1.attach(15);
 
     // Initialize struct with adress
     init(&d_State);
