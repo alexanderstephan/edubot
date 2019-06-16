@@ -24,7 +24,6 @@
 #define MAX_SPEED 1023
 #define TURN_SPEED 600
 
-
 // Define servo values
 #define SERVO_DEFAULT 90
 #define SERVO_RIGHT 120
@@ -383,12 +382,12 @@ void setup() {
     });
 
     server.on("/left", []() {
-        turnLeft();
+        turnDir(LEFT,300);
         server.send(204);
     });
 
     server.on("/right",[]() {
-        turnRight();
+        turnDir(RIGHT,300);
         server.send(204);
      });
     

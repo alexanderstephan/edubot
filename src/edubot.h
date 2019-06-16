@@ -2,11 +2,11 @@
 #define EDUBOT_EDUBOT_H
 
 /* Servo pin */
-#define SERVO_PWM 12
+#define SERVO_PWM 15
 
 /* Ultrasonic sensor pins */
-#define ECHO_PIN 14
-#define TRIG_PIN 16
+#define ECHO_PIN 12
+#define TRIG_PIN 13
 
 /* Ultrasonic sensor */
 void getDistance();

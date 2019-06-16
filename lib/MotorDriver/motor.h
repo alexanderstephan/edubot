@@ -2,13 +2,13 @@
 #define EDUBOT_MOTOR_H
 
 /* Motor pins */
-#define MOTOR_A_SPEED       13  // enA
-#define MOTOR_A_ENABLE1     2   // in1
-#define MOTOR_A_ENABLE2     0   // in2
+#define MOTOR_A_SPEED       2 // enA
+#define MOTOR_A_ENABLE1     0  // in1
+#define MOTOR_A_ENABLE2     4  // in2
 
-#define MOTOR_B_SPEED       15  // enB
-#define MOTOR_B_ENABLE1     5   // in3                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-#define MOTOR_B_ENABLE2     4   // in42
+#define MOTOR_B_SPEED       14 // enB
+#define MOTOR_B_ENABLE1     16 // in3                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+#define MOTOR_B_ENABLE2     5  // in4
  
 typedef enum {LEFT, RIGHT, FORWARD, BACKWARD, NONE} direction_t;    // To keep track of current direction
 typedef enum {AUTO, FOLLOW, IDLE} drivingMode_t;    // To keep track of the three driving modes

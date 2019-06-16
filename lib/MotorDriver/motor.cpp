@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #define DEBUG_LEVEL 2   // Global debug variable that determines the amount of logging data
+#define TURN_COEFF 0.4  // Determines by which value the wheel speed will be reduced
 
 int debugLevel = DEBUG_LEVEL; 
 
@@ -75,10 +76,10 @@ void readDirection() {
     else if (dState->speedA < 0 && dState->speedB > 0) { // If the left wheel is turning backward and right is moving forward, robot does a right turn
         dState->dir = LEFT;
         if (debugLevel > 1) {
-            Serial.println("Left  ");
+            Serial.println("Left");
         }
     }
-    else if (dState->speedA == 0 && dState->speedB == 0) { // If both speeds are zero, there is none
+    else if (dState->speedA < 50 && dState->speedB < 50) { // If both speeds are zero, there is none
         dState->dir = NONE;
     }
 }
@@ -131,51 +132,55 @@ void changeDirB() {
      driveWheels(abs(dState->speedA),-abs(dState->speedB)); // See above
 }
 
-
 // First of all declare the general function for turning movements. 
 // The turn depends on the parameters direction and turning time
-void turnDir(direction_t dir, int time) {
+void turnDir(direction_t steerDir, int time) {
+    dState->prevA = dState->speedA;
+    dState->prevB = dState->speedB;
+    
     if(dState->dir == FORWARD) {
-        if(dir == LEFT) {
+        if(steerDir == LEFT) {
             if( debugLevel > 1) {
                 Serial.println("Turning left");
             }
-            driveWheels((0.5*(dState->speedA)), dState->speedB);   // Change orientation of the left wheel
+            driveWheels((TURN_COEFF*(dState->speedA)), dState->speedB);   // Change orientation of the left wheel
             delay(time);    // Wait for the turn
             driveWheels(dState->prevA, dState->speedB);
-        } else if(dir == RIGHT) {
+        } else if(steerDir == RIGHT) {
             if( debugLevel > 1) {
                 Serial.println("Turning right");
             }
-            driveWheels(dState->speedA, 0.5*(dState->speedB));   // Change orientation of the left wheel
+            driveWheels(dState->speedA, (TURN_COEFF*(dState->speedB)));   // Change orientation of the left wheel
             delay(time);    // Wait for the turn
             driveWheels(dState->speedA, dState->prevA);          // Restore speeds
         }        
     } else if(dState->dir == BACKWARD) {
-        if(dir == LEFT) {
+        if(steerDir == LEFT) {
             if( debugLevel > 1) {
                 Serial.println("Turning left");
             }
-            driveWheels((0.5*(dState->speedA)), dState->speedB);   // Change orientation of the left wheel
+            driveWheels((TURN_COEFF*(dState->speedA)), dState->speedB);   // Change orientation of the left wheel
             delay(time);    // Wait for the turn
             driveWheels(dState->prevA, dState->speedB);
-        } else if(dir == RIGHT) {
+        } else if(steerDir == RIGHT) {
             if( debugLevel > 1) {
                 Serial.println("Turning right");
             }
-            driveWheels(dState->speedA, 0.5*(dState->speedB));   // Change orientation of the left wheel
+            driveWheels(dState->speedA, (TURN_COEFF*(dState->speedB)));   // Change orientation of the left wheel
             delay(time);    // Wait for the turn
             driveWheels(dState->speedA, dState->prevB);         // Restore speeds  
         }
     } else if (dState->dir == NONE) {
-        if (dir == LEFT) {
-            driveWheels(700, 700);
+        if (steerDir == LEFT) {
+            driveWheels((dState->speedA + 700), (dState->speedA + 700));
             changeDirA();
             delay(time);
-        } else if (dir == LEFT){
-            driveWheels(700, 700);
+            driveWheels(dState->speedA, dState->speedB);
+        } else if (steerDir == RIGHT){
+            driveWheels((dState->speedA + 700), (dState->speedA + 700));
             changeDirB();
             delay(time);
+            driveWheels(dState->speedA, dState->speedB);
         }       
     } else {
         Serial.println("Error reading direction!");
@@ -183,6 +188,9 @@ void turnDir(direction_t dir, int time) {
 }
 
 // These two function make the robot turn in a fixed direction and degree
+// OVERHEAD OF DOOM:
+
+/* 
 void turnRight() {
     // Since there is no speed set already, we need to set it manually
     if(dState->dir == FORWARD) {
@@ -224,3 +232,4 @@ void turnLeft() {
         handBrake();
     }
 }
+*/
