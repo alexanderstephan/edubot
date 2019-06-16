@@ -29,10 +29,5 @@ The robot has the basic ability to be controlled manually as well as an obstacle
 - Make a basic obstacle recognition
 - Implement simple motor logic
 
-## To do list
-- Add 100nF capacitors to both gear motors
-- Add resistor to ultra sonic sensor
-- Wheels do not have exactly the same speed
-
-## Interface
+## What it looks like
 ![Interface](https://raw.githubusercontent.com/alexanderstephan/edubot/master/screenshot.png)
