@@ -137,10 +137,10 @@ void avoidObstacle(boolean Direction) {
     handBrake();
     delay(500);
     if (Direction == LEFT) {
-        driveWheels(-TURN_SPEED,TURN_SPEED); // See above
+        driveWheels(TURN_SPEED,-TURN_SPEED); // See above
     }
     else if (Direction == RIGHT) {
-        driveWheels(TURN_SPEED,-TURN_SPEED); // See above
+        driveWheels(-TURN_SPEED,TURN_SPEED); // See above
     }
     else {
         Serial.println("Error reading direction!");
