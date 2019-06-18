@@ -38,14 +38,14 @@
         <h2 style="color:white;">Velocity:</h2><input type="range" min="0" max="1024" value="20" class="slider" id="myRange" onchange="speedChanged(this.value)"><p>
         <a href="stop"><button>Stop Engine</button></a><br>
 
-        <h2 style="color: white; font-size: 20px;">Auto mode</h2>
-        <input type="button" style="background-color:#ECEFF1;" id="auto" onClick="autoChanged('auto');" value = "OFF" ></a>
+        <h2 style="color: white; font-size: 20px;">Auto</h2>
+        <input type="button" style="background-color:#283593;" id="auto" onClick="autoChanged('auto');" value = "OFF" ></a>
 
-        <h2 style="color: white; font-size: 20px;">Follow mode</h2>
-        <input type="button" style="background-color:#ECEFF1;" id="follow" onClick="followChanged('follow');" value = "OFF"></a>
-        <br>
+        <h2 style="color: white; font-size: 20px;">Follow</h2>
+        <input type="button" style="background-color:#283593;" id="follow" onClick="followChanged('follow');" value = "OFF"></a>
+        <p>
         <div id="logo">
-        <a href="https://github.com/alexanderstephan"></a>© Alexander Stephan 2019</a>
+        <a href="https://github.com/alexanderstephan">© Alexander Stephan 2019</a>
         </div>
     </center>
 </body>
@@ -55,14 +55,19 @@
     function autoChanged(id) {
         var xhttp = new XMLHttpRequest();
         if(document.getElementById(id).value == 'OFF') {
-            document.getElementById(id).style.background = '#bcffff';
+            document.getElementById(id).style.background = '#FFC400';
             document.getElementById(id).value = 'ON';
+            document.getElementById('follow').style.background = '#263238';
+            document.getElementById('follow').value = 'LOCKED';
+
             xhttp.open("GET","setAuto?auto=1",true);
             xhttp.send();
         }
         else if(document.getElementById(id).value == 'ON') {
-            document.getElementById(id).style.background = '#ECEFF1';
+            document.getElementById(id).style.background = '#283593';
             document.getElementById(id).value = 'OFF';
+            document.getElementById('follow').style.background = '#283593';
+            document.getElementById('follow').value = 'OFF';
             xhttp.open("GET","setAuto?auto=0",true);
             xhttp.send();
         }
@@ -71,14 +76,18 @@
     function followChanged(id) {
         var xhttp = new XMLHttpRequest();
         if(document.getElementById(id).value == 'OFF') {
-            document.getElementById(id).style.background = '#bcffff';
+            document.getElementById(id).style.background = '#FFC400';
             document.getElementById(id).value = 'ON';
+            document.getElementById('auto').style.background = '#263238';
+            document.getElementById('auto').value = 'LOCKED'
             xhttp.open("GET", "setFollow?follow=1", true);
             xhttp.send();
         }
         else if(document.getElementById(id).value == 'ON') {
-            document.getElementById(id).style.background = '#ECEFF1';
+            document.getElementById(id).style.background = '#283593';
             document.getElementById(id).value = 'OFF';
+            document.getElementById('auto').style.background = '#283593';
+            document.getElementById('auto').value = 'OFF';
             xhttp.open("GET", "setFollow?follow=0", true);
             xhttp.send();
         }

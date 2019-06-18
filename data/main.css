@@ -8,21 +8,22 @@ body {
 	background-color: #53a0cc;
 }
 
-.icon {
-	display: inline-block;
-	width: 0.2em;
-	height: 0.2em;
-	stroke-width: 0;
-	stroke: currentColor;
-	fill: currentColor;
-	font-size: 250px;
+h1 {
+	padding-top: 15px;
+}
 
+a {
+	color: white !important;
+	text-decoration: none;
+}
+a:hover{
+	text-decoration: underline;;
 }
 
 button,#auto,#follow {
-	background-color: #bcffff;
+	background-color: #283593;
 	border: none;
-	color: #0D47A1;
+	color: white;
 	padding: 10px 15px;
 	text-align: center;
 	font-size: 16px;
@@ -48,6 +49,17 @@ button,#auto,#follow {
 	color: #88d1ff;
 }
 
+.icon {
+	display: inline-block;
+	width: 0.2em;
+	height: 0.2em;
+	stroke-width: 0;
+	stroke: currentColor;
+	fill: currentColor;
+	font-size: 250px;
+
+}
+
 .icon-chevron-right {
 	width: 30px;
 	height:30px;
@@ -71,11 +83,6 @@ button,#auto,#follow {
 	height:30px;
 }
 
-h1 {
-	padding-top: 15px;
-}
-
 #logo {
 	padding-bottom: 15px;
-	color: white;
 }
