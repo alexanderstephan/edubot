@@ -24,13 +24,12 @@ typedef struct drivingState {
 
 void driveWheels(int valLeft, int valRight);
 void getDirection(direction_t);
-void setMode(drivingMode_t alteredMode);
 void driveForward();
 void driveBackward();
 void changeDirA();
 void changeDirB();
 void handBrake();
-void turnDir(direction_t dir, int time);
+void turnDir(direction_t steerDir, int time);
 void turnLeft();
 void turnRight();
 void readDirection();

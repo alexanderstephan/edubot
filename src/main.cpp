@@ -56,16 +56,19 @@ drivingState_t d_State = {
     0,          // Speed B
     0,          // Previous speed A
     0,          // Previous speed B
-    IDLE        // Current mode
+    IDLE        // Mode
 };
 
 // Force driving modes
 void setMode(drivingMode_t alteredMode) {
-    if(alteredMode == d_State.mode) {
+    if(alteredMode == d_State.mode) {   // On: AUTO == AUTO
+        handBrake();
+        servo1.write(SERVO_DEFAULT);
         d_State.mode = IDLE;
     }
     else {
-        d_State.mode = alteredMode;
+        d_State.mode = alteredMode;     // Off: alteredMode = IDLE
+                                        // d.State.mode = AUTO;
     }
 }
 
@@ -302,11 +305,71 @@ void handleGet(){
             analogWrite(MOTOR_A_SPEED, abs(d_State.speedA));
             analogWrite(MOTOR_B_SPEED, abs(d_State.speedB));
         }
+    } else {
+        server.send(200, "text/html", prepareHtmlPage());
+    }   
+}
+
+void handleAuto() {
+    if(server.args()>0) {
+        if(server.hasArg("auto")) {
+            String currentStatus;
+            String buttonState;
+            Serial.println("Button has been pressed!");
+            buttonState = server.arg("auto");
+
+            if(buttonState == "0") {
+                d_State.mode = IDLE;
+                handBrake();
+                Serial.println("Auto turned off!");
+            }
+            else {
+                d_State.mode = AUTO;
+                Serial.println("Auto turned on!");
+            }
+
+            currentStatus = d_State.mode;
+            server.send(200, "text/html", currentStatus);
+        }
+    }
+}
+
+void handleFollow() {
+    if(server.args()>0) {
+        if(server.hasArg("follow")) {
+            String currentStatus;
+            String buttonState;
+            Serial.println("Button has been pressed!");
+            buttonState = server.arg("follow");
+
+            if(buttonState == "0") {
+                d_State.mode = IDLE;
+                handBrake();
+                Serial.println("Auto turned off!");
+            }
+            else {
+                d_State.mode = FOLLOW;
+                Serial.println("Auto turned on!");
+            }
+
+            currentStatus = d_State.mode;
+            server.send(200, "text/html", currentStatus);
+        }
+    }
+}
+
+void updateMode() {
+    String currentStatus;
+    if(d_State.mode == IDLE) {
+        currentStatus = "OFF";
+    }
+    else if(d_State.mode == AUTO) {
+        currentStatus = "ON";
     }
     else {
-        // Send files to server
-        server.send(200, "text/html", prepareHtmlPage()); // Push HTML code
+        Serial.println("Error!");
     }
+    server.send(200, "text/plane", currentStatus);
 }
 
 // In case an error happens,send some whoopsie message to the server
@@ -371,6 +434,12 @@ void setup() {
 
     // Handle server requests
     server.on("/",HTTP_GET,handleGet);
+    server.on("/setAuto", HTTP_GET, handleAuto);
+    server.on("/readMode", HTTP_GET, updateMode);
+    server.on("/setFollow", HTTP_GET, handleFollow);
+
+    // Tell server what to do in case of an error
+    server.onNotFound(handleNotFound);
 
     // Serve local files to server
     server.serveStatic("/main.css", SPIFFS, "/main.css");
@@ -402,37 +471,6 @@ void setup() {
         server.send(204);
     });
 
-    server.on("/auto", []() {
-        setMode(AUTO);
-        if (d_State.mode == AUTO) {
-            String autoPressed = prepareHtmlPage() += "<style>.auto { background-color: #CF6679 !important; }</style>";
-            server.send(200 ,"text/html", autoPressed);
-        }
-        else {
-            handBrake();
-            server.send(200, "text/html", prepareHtmlPage()); // Maybe redirect to / here instead of /auto
-        }
-        if (debug_Level > 1) {
-                Serial.println("Toggled auto");
-        }
-    });
-
-    server.on("/follow",[]() {
-        setMode(FOLLOW);
-        if (d_State.mode == FOLLOW) {
-		    String followPressed = prepareHtmlPage() += "<style>.follow { background-color: #CF6679 !important; }</style>";
-		    server.send(200 ,"text/html", followPressed);
-	}
-	else {
-		handBrake();
-		server.send(200, "text/html", prepareHtmlPage());
-	}
-        server.send(204);
-    });
-
-    // Tell server what to do in case of an error
-    server.onNotFound(handleNotFound);
-
     // Start Server
     server.begin();
 
@@ -442,12 +480,12 @@ void setup() {
 void loop() {
     // Make robot aware of its current direction
     readDirection();
-
+    
     // Handle server
     server.handleClient();
-   
+
     // Force different states
-    switch(d_State.mode){
+    switch(d_State.mode) {
         case IDLE:
             break;
         case AUTO:

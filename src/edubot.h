@@ -16,6 +16,7 @@ void initServo();
 void turnServo();
 void collisionHandling();
 void driveSpiral();
+void setMode();
 
 /* Server */
 String prepareHtmlPage();
