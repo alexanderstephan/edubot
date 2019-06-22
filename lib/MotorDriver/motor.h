@@ -2,14 +2,13 @@
 #define EDUBOT_MOTOR_H
 
 /* Motor pins */
-#define MOTOR_A_SPEED       2 // enA
-#define MOTOR_A_ENABLE1     0  // in1
-#define MOTOR_A_ENABLE2     4  // in2
+#define MOTOR_A_SPEED       5
+#define MOTOR_A_DIR         0
 
-#define MOTOR_B_SPEED       14 // enB
-#define MOTOR_B_ENABLE1     16 // in3                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-#define MOTOR_B_ENABLE2     5  // in4
- 
+#define MOTOR_B_SPEED       4
+#define MOTOR_B_DIR         2
+
+/* Driving states */
 typedef enum {LEFT, RIGHT, FORWARD, BACKWARD, NONE} direction_t;    // To keep track of current direction
 typedef enum {AUTO, FOLLOW, IDLE} drivingMode_t;    // To keep track of the three driving modes
 
@@ -22,6 +21,7 @@ typedef struct drivingState {
     drivingMode_t mode; /// Check out driving mode
 } drivingState_t;
 
+/* Function declarations */
 void driveWheels(int valLeft, int valRight);
 void getDirection(direction_t);
 void driveForward();
@@ -30,9 +30,5 @@ void changeDirA();
 void changeDirB();
 void handBrake();
 void turnDir(direction_t steerDir, int time);
-void turnLeft();
-void turnRight();
 void readDirection();
 void init(drivingState_t *state);
-
-#endif

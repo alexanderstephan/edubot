@@ -21,32 +21,26 @@ void init(drivingState_t *state){
 // Maybe this needs refactoring
 void driveWheels(int valLeft, int valRight) {
     if (valLeft < 0) {
-        digitalWrite(MOTOR_A_ENABLE1, HIGH);
-        digitalWrite(MOTOR_A_ENABLE2, LOW);
+        digitalWrite(MOTOR_A_DIR, LOW);
         dState->speedA = valLeft;
-    } else {
-        digitalWrite(MOTOR_A_ENABLE1, LOW);
-        digitalWrite(MOTOR_A_ENABLE2, HIGH);
+    }
+    else {
+        digitalWrite(MOTOR_A_DIR, HIGH);
         dState->speedA = valLeft;
     }
     if (valRight < 0) {
-        digitalWrite(MOTOR_B_ENABLE1, HIGH);
-        digitalWrite(MOTOR_B_ENABLE2, LOW);
+        digitalWrite(MOTOR_B_DIR, LOW);
         dState->speedB = valRight;
-    } else {
-        digitalWrite(MOTOR_B_ENABLE1, LOW);
-        digitalWrite(MOTOR_B_ENABLE2, HIGH);
+    } 
+    else {
+        digitalWrite(MOTOR_B_DIR, HIGH);
         dState->speedB = valRight;
     }
     if (valLeft == 0) {
-        digitalWrite(MOTOR_A_ENABLE1, HIGH);
-        digitalWrite(MOTOR_A_ENABLE2, HIGH);
         dState->speedB  = 0;
 
     }
     if (valRight == 0) {
-        digitalWrite(MOTOR_B_ENABLE1, HIGH);
-        digitalWrite(MOTOR_B_ENABLE2, HIGH);
         dState->speedB = 0;
     }
     analogWrite(MOTOR_A_SPEED, abs(dState->speedA));
