@@ -409,12 +409,10 @@ void setup() {
 
     // Set all motor pins as outout
     pinMode(MOTOR_A_SPEED, OUTPUT);
-    pinMode(MOTOR_A_ENABLE1, OUTPUT);
-    pinMode(MOTOR_A_ENABLE2, OUTPUT);
+    pinMode(MOTOR_A_DIR, OUTPUT);
 
     pinMode(MOTOR_B_SPEED, OUTPUT);
-    pinMode(MOTOR_B_ENABLE1, OUTPUT);
-    pinMode(MOTOR_B_ENABLE2, OUTPUT);
+    pinMode(MOTOR_B_DIR, OUTPUT);
 
     // Use access point mode
     WiFi.mode(WIFI_AP);

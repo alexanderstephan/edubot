@@ -32,3 +32,5 @@ void handBrake();
 void turnDir(direction_t steerDir, int time);
 void readDirection();
 void init(drivingState_t *state);
+
+#endif // EDUBOT_MOTOR_H
