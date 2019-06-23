@@ -442,6 +442,7 @@ void setup() {
     // Serve local files to server
     server.serveStatic("/main.css", SPIFFS, "/main.css");
     server.serveStatic("/jquery.min.js", SPIFFS, "/jquery.min.js");
+    server.serveStatic("/events.js", SPIFFS, "/events.js");
 
     // Handle events and send HTTP post code on success
     server.on("/forward", []() {
