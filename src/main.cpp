@@ -166,7 +166,7 @@ void collisionHandling() {
             Serial.println("Stopped robot!");
 
             if(dangerPos <= SERVO_DEFAULT) {
-                Serial.println("Obstacle on the left1");
+                Serial.println("Obstacle on the left!");
                 avoidObstacle(LEFT);
                 do {
                     delay(50);
@@ -174,7 +174,7 @@ void collisionHandling() {
             }
 
             if(dangerPos > SERVO_DEFAULT) {
-                Serial.println("Obstacle on the left1");
+                Serial.println("Obstacle on the right!");
                 avoidObstacle(RIGHT);
                 do {
                    delay(50);
