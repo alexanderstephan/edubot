@@ -290,8 +290,8 @@ String prepareHtmlPage() {
 
 // This one just listens to any possible changed server arguments
 // Also sends the above generated html string to the server
-// CSS and Java script are provided by serveStatic() in setup (Consistency?)
-// Primarely used for the velocity slider for now
+// CSS and java script files are provided by serveStatic() in setup
+
 void handleGet(){
     if(server.args()>0) { // If there is an valid argument
         if(server.hasArg("speed")) {
@@ -369,6 +369,7 @@ void updateMode() {
     else {
         Serial.println("Error!");
     }
+    // Send status to client
     server.send(200, "text/plane", currentStatus);
 }
 
@@ -386,7 +387,7 @@ void handleNotFound() {
     for (uint8_t i=0; i<server.args(); i++) {
         message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
     }
-
+    // Send error to client
     server.send(404, "text/plain", message);
 }
 
@@ -491,7 +492,7 @@ void loop() {
             collisionHandling();
             break;
         case FOLLOW:
-            searchHand();
+            followHand();
             break;
         default:
             Serial.println("Unregistered Mode!");
