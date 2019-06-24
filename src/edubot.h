@@ -2,13 +2,14 @@
 #define EDUBOT_EDUBOT_H
 
 /* Map out NodeMCU pins for easier access 
+   Already used pins are marked with '#'
 Data pins:
     BUILTIN_LED -> 16
     D0 ->  16
-    D1 ->  5
-    D2 ->  4
-    D3 ->  0
-    D4 ->  2
+    # D1 ->  5
+    # D2 ->  4
+    # D3 ->  0
+    # D4 ->  2
     D5 ->  14
     D6 ->  12
     D7 ->  13
@@ -20,11 +21,12 @@ Data pins:
 /* Servo pin */
 #define SERVO_PWM 15
 
-/* Ultrasonic sensor pins */
+/* Sensor pins */
 #define ECHO_PIN 12
 #define TRIG_PIN 13
+#define pinDHT11 16
 
-/* Ultrasonic sensor */
+/* Sensor functions */
 void getDistance();
 
 /* Robot movement */
@@ -38,5 +40,8 @@ void setMode();
 String prepareHtmlPage();
 void handleGet();
 void handleNotFound();
+void updateMode();
+void updateDistance();
+void updateHumid();
 
 #endif //EDUBOT_EDUBOT_H

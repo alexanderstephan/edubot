@@ -6,6 +6,7 @@ html {
 
 body {
 	background-color: #53a0cc;
+	color: #F2F3F4;
 }
 
 h1 {
@@ -16,6 +17,7 @@ a {
 	color: white !important;
 	text-decoration: none;
 }
+
 a:hover{
 	text-decoration: underline;;
 }
@@ -84,5 +86,11 @@ button,#auto,#follow {
 }
 
 #logo {
-	padding-bottom: 15px;
+	padding-bottom: 10px;
+	color: green;
 }
+#temperature, #distance, #humidity {
+	color: pink;
+	line-height: 40px;
+}
+

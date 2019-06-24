@@ -11,6 +11,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <FS.h>     // File system
+#include <SimpleDHT.h>    // Humidity sensor
 #include "edubot.h" // Pins are defined here
 #include <motor.h>  // Small library for handling the H-Bridge
 
@@ -40,10 +41,13 @@
 int debug_Level = DEBUG_LEVEL;
 int currentSpeed = 0; // Make a variable to store the current speed, speed at the start should be zero
 float distance;       // Global variable that keeps track of the current speed
+byte temperature = 0;
+byte humidity = 0;
 
 // Initialize objects
 Servo servo1;
 WRSK_UltrasonicSensor us(ECHO_PIN, TRIG_PIN, DEBUG_LEVEL);
+SimpleDHT11 dht11;
 
 // Start HTTP server at port 80
 // Adress is probably 192.168.178.4
@@ -360,18 +364,36 @@ void handleFollow() {
 
 void updateMode() {
     String currentStatus;
-    if(d_State.mode == IDLE) {
-        currentStatus = "OFF";
-    }
-    else if(d_State.mode == AUTO) {
-        currentStatus = "ON";
-    }
-    else {
-        Serial.println("Error!");
-    }
+    currentStatus = d_State.mode;
     // Send status to client
     server.send(200, "text/plane", currentStatus);
 }
+
+void updateDistance() {
+    float sensorValue = us.read();
+    char charBuf[15];
+    dtostrf(sensorValue, 7, 3, charBuf);
+    server.send(200, "text/plane", charBuf);
+}
+
+void updateHumid(){
+    if (dht11.read(pinDHT11, &temperature, &humidity, NULL)) {
+        return;
+    }
+    char charBuf[4];
+    sprintf(charBuf, "%d", (int)humidity);
+    server.send(200, "text/plane", charBuf);
+}
+
+void updateTemp(){
+    if (dht11.read(pinDHT11, &temperature, &humidity, NULL)) {
+        return;
+    }
+    char charBuf[4];
+    sprintf(charBuf, "%d", (int)temperature);
+    server.send(200, "text/plane", charBuf);
+}
+
 
 // In case an error happens,send some whoopsie message to the server
 void handleNotFound() {
@@ -434,8 +456,14 @@ void setup() {
     // Handle server requests
     server.on("/",HTTP_GET,handleGet);
     server.on("/setAuto", HTTP_GET, handleAuto);
-    server.on("/readMode", HTTP_GET, updateMode);
     server.on("/setFollow", HTTP_GET, handleFollow);
+
+    server.on("/readMode", HTTP_GET, updateMode);
+    server.on("/readDistance", HTTP_GET, updateDistance);
+    server.on("/readTemp", HTTP_GET, updateTemp);
+    server.on("/readHumid", HTTP_GET, updateHumid);
+
+
 
     // Tell server what to do in case of an error
     server.onNotFound(handleNotFound);

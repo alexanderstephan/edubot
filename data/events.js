@@ -41,25 +41,75 @@ function followChanged(id) {
     }
 }
 
-function getData(id) {
+function getData() {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-            if(this.responseText == 'ON') {
-                    document.getElementById(id).value = this.response;
-                    document.getElementById(id).style.background = '#03DAC6';
+            if(this.responseText == 'AUTO') {
+                document.getElementById('auto').value = 'ON';
+                document.getElementById('auto').style.background = '#FFC400';
+
+                document.getElementById('follow').style.background = '#263238';
+                document.getElementById('follow').value = 'LOCKED';
             }
-            else {
-                document.getElementById(id).value = 'OFF';
-                document.getElementById(id).color = 'red';
+            else if(this.responseText == 'FOLLOW') {
+                document.getElementById('follow').style.background = '#FFC400';
+                document.getElementById('follow').value = 'ON'
+
+                document.getElementById('auto').style.background = '#263238';
+                document.getElementById('auto').value = 'LOCKED'
             }
         }
-    };
-        xhttp.open("GET",readMode,true);
-        xhttp.send();
+    }
+    xhttp.open("GET", "readMode" , true);
+    xhttp.send();
 }
+
+function getDistance(){
+    var xhttp = new XMLHttpRequest();
+
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            document.getElementById("distance").innerHTML = this.responseText;
+        }
+    }
+
+    xhttp.open("GET", "readDistance", true);
+    xhttp.send();
+}
+
+function getHumid(){
+    var xhttp = new XMLHttpRequest();
+
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            document.getElementById("humidity").innerHTML = this.responseText;
+        }
+    }
+
+    xhttp.open("GET", "readHumid", true);
+    xhttp.send();
+}
+
+function getTemp(){
+    var xhttp = new XMLHttpRequest();
+
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            document.getElementById("temperature").innerHTML = this.responseText;
+        }
+    }
+
+    xhttp.open("GET", "readTemp", true);
+    xhttp.send();
+}
+
 setInterval(function() {
-},5000);
+    getData(); 
+    getDistance(); 
+    getHumid();
+    getTemp();
+},2000);
 
 function speedChanged(speed) {	
     $.get("?speed=" + speed );
