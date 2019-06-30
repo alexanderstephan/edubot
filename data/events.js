@@ -12,23 +12,21 @@ function speedChanged(speed) {
     // Legacy approach
     //$.get("?speed=" + speed );
 }
- // Needs to be refactored by using a css class
-function autoChanged(id) {
+// Needs to be refactored by using a css class
+
+function autoChanged() {
     var xhttp = new XMLHttpRequest();
-    if(document.getElementById(id).value == 'OFF') {
-        document.getElementById(id).style.background = '#FFC400';
-        document.getElementById(id).value = 'ON';
-        
+    if(document.getElementById('auto').value == 'OFF') {
+        document.getElementById('auto').style.background = '#FFC400';
+        document.getElementById('auto').value = 'ON';
         document.getElementById('follow').style.background = '#263238';
         document.getElementById('follow').value = 'LOCKED';
-
         xhttp.open("GET","setAuto?auto=1",true);
         xhttp.send();
     }
-    else if(document.getElementById(id).value == 'ON') {
-        document.getElementById(id).style.background = '#283593';
-        document.getElementById(id).value = 'OFF';
-
+    else if(document.getElementById('auto').value == 'ON') {
+        document.getElementById('auto').style.background = '#283593';
+        document.getElementById('auto').value = 'OFF';
         document.getElementById('follow').style.background = '#283593';
         document.getElementById('follow').value = 'OFF';
         xhttp.open("GET","setAuto?auto=0",true);
@@ -36,12 +34,11 @@ function autoChanged(id) {
     }
 }
 
-function followChanged(id) {
+function followChanged() {
     var xhttp = new XMLHttpRequest();
-    if(document.getElementById(id).value == 'OFF') {
-        document.getElementById(id).style.background = '#FFC400';
-        document.getElementById(id).value = 'ON';
-
+    if(document.getElementById('follow').value == 'OFF') {
+        document.getElementById('follow').style.background = '#FFC400';
+        document.getElementById('follow').value = 'ON';
         document.getElementById('auto').style.background = '#263238';
         document.getElementById('auto').value = 'LOCKED'
         xhttp.open("GET", "setFollow?follow=1", true);
@@ -50,7 +47,6 @@ function followChanged(id) {
     else if(document.getElementById(id).value == 'ON') {
         document.getElementById(id).style.background = '#283593';
         document.getElementById(id).value = 'OFF';
-
         document.getElementById('auto').style.background = '#283593';
         document.getElementById('auto').value = 'OFF';
         xhttp.open("GET", "setFollow?follow=0", true);
@@ -65,21 +61,18 @@ function getData() {
             if(this.responseText == '0') {
                 document.getElementById('auto').value = 'ON';
                 document.getElementById('auto').style.background = '#FFC400';
-
                 document.getElementById('follow').style.background = '#263238';
                 document.getElementById('follow').value = 'LOCKED';
             }
             else if(this.responseText == '1') {
                 document.getElementById('follow').style.background = '#FFC400';
                 document.getElementById('follow').value = 'ON'
-
                 document.getElementById('auto').style.background = '#263238';
                 document.getElementById('auto').value = 'LOCKED'
             }
-            else{
+            else {
                 document.getElementById('auto').style.background = '#283593';
                 document.getElementById('auto').value = 'OFF';
-
                 document.getElementById('follow').style.background = '#283593';
                 document.getElementById('follow').value = 'OFF';
             }
@@ -89,7 +82,7 @@ function getData() {
     xhttp.send();
 }
 
-function getDistance(){
+function getDistance() {
     var xhttp = new XMLHttpRequest();
 
     xhttp.onreadystatechange = function() {

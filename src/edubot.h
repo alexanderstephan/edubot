@@ -36,6 +36,9 @@ void turnServo();
 void collisionHandling();
 void driveSpiral();
 void setMode();
+void turnTowardsHand(boolean Direction, int servoPos);
+int searchHand();
+
 
 /* Server */
 String prepareHtmlPage();

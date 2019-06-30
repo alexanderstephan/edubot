@@ -27,8 +27,8 @@
 
 // Define servo values
 #define SERVO_DEFAULT 90
-#define SERVO_RIGHT 120
-#define SERVO_LEFT 60
+#define SERVO_RIGHT 140
+#define SERVO_LEFT 40
 
 // Define tresholds
 #define HAND_DISTANCE 15
@@ -102,7 +102,6 @@ void turnServo(int degree) {
     unsigned long intervall = 25;
     unsigned long prevTime = 0;
    
-
     do {
         server.handleClient();
         unsigned long currentTime = millis();
@@ -112,10 +111,9 @@ void turnServo(int degree) {
             distance = us.read();
             prevTime = currentTime;
         }
-        
-        } while(pos <= (SERVO_DEFAULT + turnDegree) && distance > 10.0);
+    } while(pos <= (SERVO_DEFAULT + turnDegree) && distance > 10.0);
 
-     do {
+    do {
         server.handleClient();
         unsigned long currentTime = millis();
         if(currentTime - prevTime >= intervall){
@@ -123,9 +121,8 @@ void turnServo(int degree) {
             servo1.write(pos);
             distance = us.read();
             prevTime = currentTime;
-            
         }
-        } while(pos >= (SERVO_DEFAULT - turnDegree) && distance > 10.0);
+    } while(pos >= (SERVO_DEFAULT - turnDegree) && distance > 10.0);
 }                                                                                                                   
 
 /* ------------------------------------------------------
@@ -208,6 +205,7 @@ void collisionHandling() {
             delay(200);
 
             Serial.println("Avoided obstacle!");
+
         // Continue driving while searching for obstacles
         } else if (distance > 10.0 && distance <= 20.0) {
             Serial.println("More or less out of sight!");
@@ -238,7 +236,7 @@ int searchHand() {
         for (int servoPosition = SERVO_RIGHT; servoPosition >= SERVO_LEFT; servoPosition--) {
             // Set servo position
             servo1.write(servoPosition);
-
+            server.handleClient();
             // Make sure servo isn't turning too fast
             delay(10);
 
@@ -254,6 +252,7 @@ int searchHand() {
         // Same thing but in the other direction
         for (int servoPosition = SERVO_LEFT; servoPosition <= SERVO_RIGHT; servoPosition++) {
             servo1.write(servoPosition);
+            server.handleClient();
             delay(10);
             distance = us.read();
 
@@ -263,27 +262,49 @@ int searchHand() {
             }
         }
     } while (distance > HAND_DISTANCE); // Search while hand is not within reach
-    return 0;
+    return 1;
 }
 
 void followHand() {
     initServo(SERVO_DEFAULT);
-    analogWrite(MOTOR_A_SPEED, MAX_SPEED);
-    analogWrite(MOTOR_B_SPEED, MAX_SPEED);
-    driveForward();
+    driveWheels(DEFAULT_SPEED,DEFAULT_SPEED);
 
     do {
         distance = us.read();
+        server.handleClient();
         delay(10);
-    } while ((distance <= HAND_DISTANCE) && (distance <= TOO_CLOSE));
+    } while ((distance <= HAND_DISTANCE) && (distance >= TOO_CLOSE));
     
     handBrake();
     
     delay(1000);
 }
 
-void turnTowardsHand() {
-
+void turnTowardsHand(boolean Direction, int servoPos) {
+    handBrake();
+    if (Direction == LEFT) {
+        driveWheels(-TURN_SPEED,TURN_SPEED);
+    }
+    else if (Direction == RIGHT) {
+        driveWheels(TURN_SPEED,-TURN_SPEED);
+    }
+    else {
+        Serial.println("Error reading direction!");
+    }
+    
+    do {
+        driveWheels(DEFAULT_SPEED, DEFAULT_SPEED);
+        servo1.write(servoPos);
+        server.handleClient();
+        if (Direction == LEFT) {
+            servoPos++;
+        }
+        else {
+            servoPos--;
+        } 
+        delay(25);
+        handBrake();
+    } while(servoPos != SERVO_DEFAULT);
 }
 
 /* ------------------------------------------------------
@@ -539,9 +560,18 @@ void loop() {
         case AUTO:
             collisionHandling();
             break;
-        case FOLLOW:
-            followHand();
+        case FOLLOW: {
+            int handDir = 0;
+            handDir = searchHand();
+            if(handDir <= SERVO_DEFAULT){
+                turnTowardsHand(LEFT, handDir);
+            }
+            else {
+                turnTowardsHand(RIGHT, handDir);
+            }
+            delay(1000);
             break;
+        }
         default:
             Serial.println("Unregistered Mode!");
         break;
