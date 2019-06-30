@@ -28,6 +28,4 @@ The robot has the basic ability to be controlled manually as well as an obstacle
 - Make robot drive in zigzag pattern
 - Make a basic obstacle recognition
 - Implement simple motor logic
-
-## What it looks like
-![Interface](https://raw.githubusercontent.com/alexanderstephan/edubot/master/screenshot.png)
+- Add sensors and display them on the website
