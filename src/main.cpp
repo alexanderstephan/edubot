@@ -11,9 +11,9 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <FS.h>     // File system
-#include <SimpleDHT.h>    // Humidity sensor
 #include "edubot.h" // Pins are defined here
 #include <motor.h>  // Small library for handling the H-Bridge
+#include <SimpleDHT.h>
 
 // Credentials of the access point
 #define HOST "edubot"
@@ -33,21 +33,27 @@
 // Define tresholds
 #define HAND_DISTANCE 15
 #define TOO_CLOSE 4
-#define MIN_DISTANCE 10
+#define MIN_DISTANCE 15
 
 // Define debug level for enabling serial output
 #define DEBUG_LEVEL 2
 
 int debug_Level = DEBUG_LEVEL;
 int currentSpeed = 0; // Make a variable to store the current speed, speed at the start should be zero
+
 float distance;       // Global variable that keeps track of the current speed
+
 byte temperature = 0;
 byte humidity = 0;
+
+unsigned long prevTime = 0;
+unsigned long intervall = 5000;
+
 
 // Initialize objects
 Servo servo1;
 WRSK_UltrasonicSensor us(ECHO_PIN, TRIG_PIN, DEBUG_LEVEL);
-SimpleDHT11 dht11;
+SimpleDHT11 dht11(pinDHT11);
 
 // Start HTTP server at port 80
 // Adress is probably 192.168.178.4
@@ -93,18 +99,32 @@ void initServo(int servoPos) {
 void turnServo(int degree) {
     int pos = SERVO_DEFAULT;        // Start rotation from the middle
     int turnDegree = degree;
+    unsigned long intervall = 25;
+    unsigned long prevTime = 0;
+   
+
     do {
+        server.handleClient();
+        unsigned long currentTime = millis();
+        if(currentTime - prevTime >= intervall) {
             pos++;
             servo1.write(pos);
             distance = us.read();
-            delay(25);
+            prevTime = currentTime;
+        }
+        
         } while(pos <= (SERVO_DEFAULT + turnDegree) && distance > 10.0);
 
      do {
+        server.handleClient();
+        unsigned long currentTime = millis();
+        if(currentTime - prevTime >= intervall){
             pos--;
             servo1.write(pos);
             distance = us.read();
-            delay(25);
+            prevTime = currentTime;
+            
+        }
         } while(pos >= (SERVO_DEFAULT - turnDegree) && distance > 10.0);
 }                                                                                                                   
 
@@ -174,7 +194,7 @@ void collisionHandling() {
                 avoidObstacle(LEFT);
                 do {
                     delay(50);
-                } while (us.read() < (MIN_DISTANCE + 3));
+                } while (us.read() < (MIN_DISTANCE));
             }
 
             if(dangerPos > SERVO_DEFAULT) {
@@ -182,24 +202,24 @@ void collisionHandling() {
                 avoidObstacle(RIGHT);
                 do {
                    delay(50);
-                } while (us.read() < (MIN_DISTANCE + 3));
+                } while (us.read() < (MIN_DISTANCE));
             }
 
             delay(200);
 
             Serial.println("Avoided obstacle!");
         // Continue driving while searching for obstacles
-        } else if (distance > 10.0) {
+        } else if (distance > 10.0 && distance <= 20.0) {
             Serial.println("More or less out of sight!");
             driveWheels(DEFAULT_SPEED, DEFAULT_SPEED);
-            turnServo(40);
+            turnServo(30);
         } else if (distance > 20.0) {
             Serial.println("Obstacle out of sight!");
-            driveWheels(MAX_SPEED, MAX_SPEED);
-            turnServo(30);
+            driveWheels(DEFAULT_SPEED*1.3, DEFAULT_SPEED* 1.3);
+            turnServo(20);
         }
-        delay(10);
     }
+    delay(40);
 }
 
 
@@ -270,50 +290,6 @@ void turnTowardsHand() {
  Everything related to setting up the server and website
 -------------------------------------------------------*/
 
-// This function just reads the web files from the data folder and returns them as a string
-String prepareHtmlPage() {
-        String htmlPage;                                // Init string
-        File f = SPIFFS.open("/edubot.html","r");       // Open file
-        // Check for an error
-        if (!f) {
-            if(debug_Level > 1) {
-            Serial.println("Error reading .html file!");
-            }
-        }
-
-        // Read file into string
-        else {
-            htmlPage = f.readString();
-            if( debug_Level > 1) {
-            Serial.println("Reading files succesfully!");
-            }
-        }
-        f.close();  // Close file
-        return htmlPage;
-}
-
-// This one just listens to any possible changed server arguments
-// Also sends the above generated html string to the server
-// CSS and java script files are provided by serveStatic() in setup
-
-void handleGet(){
-    if(server.args()>0) { // If there is an valid argument
-        if(server.hasArg("speed")) {
-            if (debug_Level > 2){
-                Serial.println(server.arg("speed").toInt());      // Log current speed
-            }
-            // Convert string to integer and set motor speed accordingly
-            d_State.speedA = server.arg("speed").toInt();
-            d_State.speedB = server.arg("speed").toInt();
-            // Set current speed values
-            analogWrite(MOTOR_A_SPEED, abs(d_State.speedA));
-            analogWrite(MOTOR_B_SPEED, abs(d_State.speedB));
-        }
-    } else {
-        server.send(200, "text/html", prepareHtmlPage());
-    }   
-}
-
 void handleAuto() {
     if(server.args()>0) {
         if(server.hasArg("auto")) {
@@ -325,17 +301,22 @@ void handleAuto() {
             if(buttonState == "0") {
                 d_State.mode = IDLE;
                 handBrake();
+                servo1.write(SERVO_DEFAULT);
                 Serial.println("Auto turned off!");
             }
-            else {
+            else if(buttonState == "1") {
                 d_State.mode = AUTO;
                 Serial.println("Auto turned on!");
+            }
+            else {
+                Serial.println("Error reading mode!");
             }
 
             currentStatus = d_State.mode;
             server.send(200, "text/html", currentStatus);
         }
     }
+    Serial.println("No auto argument");
 }
 
 void handleFollow() {
@@ -362,38 +343,61 @@ void handleFollow() {
     }
 }
 
+void handleSpeed() {
+    if(server.args()>0) { // If there is an valid argument
+        if(server.hasArg("speed")) {
+            if (debug_Level > 1){
+                Serial.println(server.arg("speed").toInt());      // Log current speed
+            }
+            d_State.prevA = d_State.speedA;
+            d_State.prevB = d_State.speedB;
+
+            // Convert string to integer and set motor speed accordingly
+            d_State.speedA = server.arg("speed").toInt();
+            d_State.speedB = server.arg("speed").toInt();
+            if(d_State.speedA > 50 && d_State.speedB > 50) {
+                if(d_State.prevA != d_State.speedA || d_State.prevB != d_State.speedB) {
+                    // Set current speed values
+                    analogWrite(MOTOR_A_SPEED, abs(d_State.speedA));
+                    analogWrite(MOTOR_B_SPEED, abs(d_State.speedB));
+                }
+            }
+            else {
+                handBrake();
+            }
+            char charBuf[5];
+            sprintf(charBuf, "%d", (int)d_State.speedA);
+            server.send(200, "textplane", charBuf );
+        }
+    }  
+}
+
 void updateMode() {
     String currentStatus;
     currentStatus = d_State.mode;
-    // Send status to client
     server.send(200, "text/plane", currentStatus);
 }
 
 void updateDistance() {
     float sensorValue = us.read();
-    char charBuf[15];
-    dtostrf(sensorValue, 7, 3, charBuf);
+    char charBuf[6];
+    dtostrf(sensorValue, 6, 2, charBuf); // Convert float to string
     server.send(200, "text/plane", charBuf);
 }
 
 void updateHumid(){
-    if (dht11.read(pinDHT11, &temperature, &humidity, NULL)) {
-        return;
-    }
-    char charBuf[4];
-    sprintf(charBuf, "%d", (int)humidity);
+    Serial.println((int)humidity);
+    char charBuf[6];
+    sprintf(charBuf, "%d", 55);
     server.send(200, "text/plane", charBuf);
 }
 
 void updateTemp(){
-    if (dht11.read(pinDHT11, &temperature, &humidity, NULL)) {
-        return;
-    }
-    char charBuf[4];
+    char charBuf[6];
+    Serial.println((int)temperature);
     sprintf(charBuf, "%d", (int)temperature);
     server.send(200, "text/plane", charBuf);
 }
-
 
 // In case an error happens,send some whoopsie message to the server
 void handleNotFound() {
@@ -425,7 +429,7 @@ void setup() {
     SPIFFS.begin();
 
     // Initialize servo pin
-    servo1.attach(15);
+    servo1.attach(SERVO_PWM);
 
     // Initialize struct with adress
     init(&d_State);
@@ -436,6 +440,10 @@ void setup() {
 
     pinMode(MOTOR_B_SPEED, OUTPUT);
     pinMode(MOTOR_B_DIR, OUTPUT);
+
+    // Initialize motor pins
+    digitalWrite(MOTOR_A_DIR, HIGH);
+    digitalWrite(MOTOR_B_DIR, HIGH);
 
     // Use access point mode
     WiFi.mode(WIFI_AP);
@@ -454,21 +462,21 @@ void setup() {
     }
 
     // Handle server requests
-    server.on("/",HTTP_GET,handleGet);
-    server.on("/setAuto", HTTP_GET, handleAuto);
-    server.on("/setFollow", HTTP_GET, handleFollow);
+    // server.on("/",HTTP_GET,handleGet); not needed right now
+    server.on("/setAuto",handleAuto);
+    server.on("/setFollow", handleFollow);
+    server.on("/setSpeed", handleSpeed);
 
-    server.on("/readMode", HTTP_GET, updateMode);
-    server.on("/readDistance", HTTP_GET, updateDistance);
-    server.on("/readTemp", HTTP_GET, updateTemp);
-    server.on("/readHumid", HTTP_GET, updateHumid);
-
-
+    server.on("/readMode", updateMode);
+    server.on("/readDistance", updateDistance);
+    server.on("/readTemp", updateTemp);
+    server.on("/readHumid", updateHumid);
 
     // Tell server what to do in case of an error
     server.onNotFound(handleNotFound);
 
     // Serve local files to server
+    server.serveStatic("/", SPIFFS, "/edubot.html");
     server.serveStatic("/main.css", SPIFFS, "/main.css");
     server.serveStatic("/jquery.min.js", SPIFFS, "/jquery.min.js");
     server.serveStatic("/events.js", SPIFFS, "/events.js");
@@ -508,11 +516,23 @@ void setup() {
 void loop() {
     // Make robot aware of its current direction
     readDirection();
-    
+
+    // Update sensor values every 5s
+    int err = SimpleDHTErrSuccess;
+
+    if(millis() > prevTime + intervall)  {
+        if ((err = dht11.read(&temperature, &humidity, NULL)) != SimpleDHTErrSuccess) {
+            Serial.print("Read DHT11 failed, err="); Serial.println(err);delay(1000);
+            return;
+        }
+        prevTime = millis();
+        Serial.println(millis());
+    }
+        
     // Handle server
     server.handleClient();
 
-    // Force different states
+    // // Force different states
     switch(d_State.mode) {
         case IDLE:
             break;

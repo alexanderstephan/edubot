@@ -7,7 +7,7 @@
     <script src="events.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body onLoad="getData();">
+<body onLoad="init();">
     <svg aria-hidden="true" style="position: absolute; width: 0; height: 0; overflow: hidden;" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
         <defs>
             <symbol id="icon-chevron-right" viewBox="0 0 19 28">
@@ -36,12 +36,12 @@
         <a href="right"><button class="button nav"><svg class="icon icon-chevron-right"><use xlink:href="#icon-chevron-right"></use></svg></button></a><br>
         <a href="backward"><button class="button nav"><svg class="icon icon-chevron-down"><use xlink:href="#icon-chevron-down"></use></svg></button></a><br>
         
-        <h2>Velocity:</h2><input type="range" min="0" max="1024" value="20" class="slider" id="myRange" onchange="speedChanged(this.value)"><p>
+        <h2>Velocity:</h2><input type="range" min="0" max="1024" value="20" class="slider" id="myRange" onchange="speedChanged(this.value);"><p>
         <a href="stop"><button>Stop Engine</button></a><br>
 
         <h2 style="font-size: 20px;">Auto</h2>
         
-        <input type="button" style="background-color:#283593;" id="auto" onClick="autoChanged('auto');" value = "OFF" ></a><br>
+       <input type="button" style="background-color:#283593;" id="auto" onClick="autoChanged('auto');" value = "OFF" ></a><br>
 
         <h2 style="font-size: 20px;">Follow</h2>
         <input type="button" style="background-color:#283593;" id="follow" onClick="followChanged('follow');" value = "OFF"></a><br>

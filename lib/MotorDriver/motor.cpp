@@ -51,25 +51,25 @@ void driveWheels(int valLeft, int valRight) {
 void readDirection() {
     if (dState->speedA > 0 && dState->speedB > 0) { // If both are positive the robot is driving forward
         dState->dir = FORWARD;
-         if (debugLevel > 1) {
+         if (debugLevel > 3) {
             Serial.println("Forward");
         }
     }
     else if (dState->speedA < 0  && dState->speedB < 0) { // If both are negative the robot is driving backward
         dState->dir = BACKWARD;
-        if (debugLevel > 1) {
+        if (debugLevel > 3) {
             Serial.println("Backward");
         }
     }
     else if (dState->speedA > 0 && dState->speedB < 0) { // If the left wheel is turning forward and right is moving backward, robot does a right turn
         dState->dir = RIGHT;
-        if (debugLevel > 1) {
+        if (debugLevel > 3) {
             Serial.println("Right");
         }
     }
     else if (dState->speedA < 0 && dState->speedB > 0) { // If the left wheel is turning backward and right is moving forward, robot does a right turn
         dState->dir = LEFT;
-        if (debugLevel > 1) {
+        if (debugLevel > 3) {
             Serial.println("Left");
         }
     }
@@ -83,24 +83,14 @@ void readDirection() {
 -------------------------------------------------------*/
 
 void driveForward() {
-    if(dState->speedA == 0 && dState->speedB == 0) {    // If the speed is zero, restore the previous speed
-        driveWheels(abs(dState->prevA), abs(dState->prevB));
-    }
-    else  {
-        driveWheels(abs(dState->speedA),abs(dState->speedB));   // Otherwise set the absolute speed values
-    }
+    driveWheels(abs(dState->speedA),abs(dState->speedB));   // Otherwise set the absolute speed value
     if(debugLevel > 1) {
         Serial.println("Driving forward");
     }
 }
 
 void driveBackward() {
-    if(dState->speedA == 0 && dState->speedB == 0) {
-        driveWheels(-abs(dState->prevA), -abs(dState->prevB));  // If the speed is zero, restore the previous speed
-    }
-    else {
-        driveWheels(-abs(dState->speedA),-abs(dState->speedB)); // Otherwise set the negative absolute speed values
-    }
+    driveWheels(-abs(dState->speedA),-abs(dState->speedB)); // Otherwise set the negative absolute speed values
     if(debugLevel > 1) {
         Serial.println("Driving backwards");
     }
