@@ -29,25 +29,28 @@
 
 /* Sensor functions */
 void getDistance();
+void updateHumid();
+void updateTemp();
 
 /* Robot movement */
+int searchHand();
+int seekingPositionWithClosestDanger();
+
+void setMode();
 void initServo();
 void turnServo();
 void collisionHandling();
-void driveSpiral();
-void setMode();
+void avoidObstacle();
+void followHand();
 void turnTowardsHand(boolean Direction, int servoPos);
-int searchHand();
-
 
 /* Server */
 String prepareHtmlPage();
-void handleGet();
 void handleNotFound();
 void handleAuto();
 void handleFollow();
 void updateMode();
 void updateDistance();
-void updateHumid();
+void handleSpeed();
 
 #endif //EDUBOT_EDUBOT_H
