@@ -97,32 +97,57 @@ void initServo(int servoPos) {
 
 // Just a function to continously rotate the servo within a certain degree
 void turnServo(int degree) {
-    int pos = SERVO_DEFAULT;        // Start rotation from the middle
-    int turnDegree = degree;
+    // Start rotation from the center
+    int pos = SERVO_DEFAULT;
+
+
+    // Intervall length is 25ms
     unsigned long intervall = 25;
+
+    // Save the time that has passed before the intervall
     unsigned long prevTime = 0;
-   
+
+ 
     do {
+        // Check if there have been any requests
         server.handleClient();
+
+        // Store current time
         unsigned long currentTime = millis();
+
+        // Wait until the time intervall hits 25ms
         if(currentTime - prevTime >= intervall) {
+            // Increment servo degree and write position
             pos++;
             servo1.write(pos);
+
+            // Update ultra sonic sensor value for the while condition
             distance = us.read();
+
+            // Subtract time before the next intervall
             prevTime = currentTime;
         }
-    } while(pos <= (SERVO_DEFAULT + turnDegree) && distance > 10.0);
+    } while(pos <= (SERVO_DEFAULT + degree) && distance > 10.0);
 
     do {
+        // Check if there have been any requests
         server.handleClient();
+
+        // Store current time
         unsigned long currentTime = millis();
+
         if(currentTime - prevTime >= intervall){
+            // Increment servo degree and write position
             pos--;
             servo1.write(pos);
+
+            // Update ultra sonic sensor value for the while condition
             distance = us.read();
+
+            // Subtract time before the next intervall
             prevTime = currentTime;
         }
-    } while(pos >= (SERVO_DEFAULT - turnDegree) && distance > 10.0);
+    } while(pos >= (SERVO_DEFAULT - degree) && distance > 10.0);
 }                                                                                                                   
 
 /* ------------------------------------------------------
@@ -133,87 +158,146 @@ int seekingPositionWithClosestDanger() {
     // Stop the robot
     handBrake();
 
+    // Stores the position of the servo
     int servoPos;
+
+    // Store the minimum distance
+    // A big value is needed so it can be updated reliably
     int minDistance = 100;
+
+    // Store the servo position that corresponds to the smallest distance
     int minServoPos = 0;
 
+    if(debug_Level > 1)
     Serial.println("Moving servo from left to right!");
-
+    
     for(servoPos = SERVO_RIGHT; servoPos >= SERVO_LEFT; servoPos--) {
         servo1.write(servoPos);
-        delay(10);  // Wait until servo position is reached
+
+        // Wait until servo position is reached
+        delay(10);  
+
         if (distance < minDistance) {
-            if (distance > 0.1) {       // Avoid invalid readings
-                minDistance = distance; // Current value is new minimum
+            // Avoid invalid readings
+            if (distance > 0.1) {       
+                // Current value is new minimum
+                minDistance = distance; 
             }
-            minServoPos = servoPos;     // Save servo position
+
+            // Save servo position
+            minServoPos = servoPos;     
         }
     }
+    if(debug_Level > 1) {
     servo1.write(minServoPos);
     Serial.print("Minimale Distanz:");
     Serial.println(minDistance);
     Serial.print("Servo Position:");
     Serial.println(minServoPos);
+    }
+
     return minServoPos;
 }
 
 void avoidObstacle(boolean Direction) {
+    // Stand stil for half a second
     handBrake();
     delay(500);
+
+    // If the obstacle was detected on the left turn right
     if (Direction == LEFT) {
-        driveWheels(TURN_SPEED,-TURN_SPEED); // See above
+        driveWheels(TURN_SPEED,-TURN_SPEED);
     }
+
+    // If the obstacle was detected on the right turn left
     else if (Direction == RIGHT) {
-        driveWheels(-TURN_SPEED,TURN_SPEED); // See above
+        driveWheels(-TURN_SPEED,TURN_SPEED);
     }
+    
+    // In case of an unlikely typo during function call print error
     else {
         Serial.println("Error reading direction!");
     }
 }
 
 void collisionHandling() {
+    // Stores obstacle position according to servo degree
     int dangerPos;
+
+    // Stores ultra sonic distance
     distance = us.read();
 
     // If ultrasonic distance is less than 10 perform a obstacle avoidance routine, else proceed driving
     if (distance > 0.1) {   // Avoid invalid readings
         if (distance < MIN_DISTANCE) {
             // Wait if the sensor value stabilizes
-            Serial.println("Recognized potential danger!");
-            Serial.println("Seeking danger position!");
-            dangerPos = seekingPositionWithClosestDanger();
-            Serial.print("Obstacle at position ");
-            Serial.println(dangerPos);
-            Serial.println("Stopped robot!");
 
+            if(debug_Level > 1) {
+                Serial.println("Recognized potential danger!");
+                Serial.println("Seeking danger position!");
+            }
+
+            // Function rotates the servo and determines where the smallest distance to the obstacle is
+            dangerPos = seekingPositionWithClosestDanger();
+
+            if(debug_Level > 1) {
+                Serial.print("Obstacle at position ");
+                Serial.println(dangerPos);
+                Serial.println("Stopped robot!");
+            }
+
+            // If the above returned position is smaller than 90 the obstacle is left
             if(dangerPos <= SERVO_DEFAULT) {
+                if(debug_Level > 1)
                 Serial.println("Obstacle on the left!");
+
+                // Turn away from obstacle. In this case turn right
                 avoidObstacle(LEFT);
+                
+                // Right turn lasts as long as the delay is being looped
                 do {
                     delay(50);
                 } while (us.read() < (MIN_DISTANCE));
+                // If the obstacle is out of sight continue
             }
 
             if(dangerPos > SERVO_DEFAULT) {
+                if(debug_Level > 1)
                 Serial.println("Obstacle on the right!");
+
+                // Turn away from obstacle. In this case turn right
                 avoidObstacle(RIGHT);
+                
+                // Left turn lasts as long as the delay is being looped
                 do {
                    delay(50);
                 } while (us.read() < (MIN_DISTANCE));
             }
 
+            // Wait a little bit so the function can't be called too often
             delay(200);
 
+            if(debug_Level > 1)
             Serial.println("Avoided obstacle!");
 
         // Continue driving while searching for obstacles
         } else if (distance > 10.0 && distance <= 20.0) {
+            if(debug_Level > 1)
             Serial.println("More or less out of sight!");
+
+            // Set speed to default
             driveWheels(DEFAULT_SPEED, DEFAULT_SPEED);
+
+            // Rotate servo for wider 'viewing angle'
             turnServo(30);
         } else if (distance > 20.0) {
+            if(debug_Level > 1)
             Serial.println("Obstacle out of sight!");
+
+            // Drive a little bit faster since there is no obstacle nearby
             driveWheels(DEFAULT_SPEED*1.3, DEFAULT_SPEED* 1.3);
+
+            // Wider area means we don't need to rotate that far out
             turnServo(20);
         }
     }
@@ -226,47 +310,69 @@ void collisionHandling() {
 ----------------------------------------------------------*/
 
 int searchHand() {
+
     distance = us.read();
+
+    // Stores the position if object is measured within threshold
     int handPosition =  0;
+
+    // Stop for 500ms. Probably too long
     handBrake();
     delay(500);
+
+    // Move servo to the right
     initServo(SERVO_RIGHT);
 
     do {
         for (int servoPosition = SERVO_RIGHT; servoPosition >= SERVO_LEFT; servoPosition--) {
+
             // Set servo position
             servo1.write(servoPosition);
             server.handleClient();
-            // Make sure servo isn't turning too fast
+
+            // Make sure servo reaches position in time
             delay(10);
 
             // Update sensor value
             distance = us.read();
 
-            // If hand position detected return it as an integer
+            // Save position if the distance is within a certain threshold
             if (distance <= HAND_DISTANCE) {
                 handPosition = servoPosition;
                 return handPosition;
             }
         }
-        // Same thing but in the other direction
+
         for (int servoPosition = SERVO_LEFT; servoPosition <= SERVO_RIGHT; servoPosition++) {
+            
+            // Set servo position
             servo1.write(servoPosition);
             server.handleClient();
+            
+            // Make sure servo reaches position in time
             delay(10);
+
+            // Update sensor value
             distance = us.read();
 
+            // Save position if the distance is within a certain threshold
             if (distance <= HAND_DISTANCE) {
                 handPosition = servoPosition;
                 return handPosition;
             }
         }
-    } while (distance > HAND_DISTANCE); // Search while hand is not within reach
+    } while (distance > HAND_DISTANCE); 
+    // Search while hand is not within reach
+
+    // Return function type
     return 1;
 }
 
 void followHand() {
+    // Center servo
     initServo(SERVO_DEFAULT);
+
+    // Drive with normal speed
     driveWheels(DEFAULT_SPEED,DEFAULT_SPEED);
 
     do {
@@ -274,17 +380,23 @@ void followHand() {
         server.handleClient();
         delay(10);
     } while ((distance <= HAND_DISTANCE) && (distance >= TOO_CLOSE));
+    // Continue driving as long the hand is within a certain threshold
     
+    // Invalid hand position so wait at least one second for now
     handBrake();
-    
     delay(1000);
 }
 
 void turnTowardsHand(boolean Direction, int servoPos) {
+    // Start from speed 0
     handBrake();
+
+    // If hand is left turn robot also left
     if (Direction == LEFT) {
         driveWheels(-TURN_SPEED,TURN_SPEED);
     }
+
+    // If hand is left turn robot also left
     else if (Direction == RIGHT) {
         driveWheels(TURN_SPEED,-TURN_SPEED);
     }
@@ -293,18 +405,26 @@ void turnTowardsHand(boolean Direction, int servoPos) {
     }
     
     do {
-        driveWheels(DEFAULT_SPEED, DEFAULT_SPEED);
+        // Write servo position
         servo1.write(servoPos);
+
+        // Continue handling server events while looping
         server.handleClient();
+
+        // If hand is on left turn servo to the right
         if (Direction == LEFT) {
             servoPos++;
         }
+
+        // If hand is on right turn servo to the left
         else {
             servoPos--;
         } 
         delay(25);
+
         handBrake();
     } while(servoPos != SERVO_DEFAULT);
+    
 }
 
 /* ------------------------------------------------------
@@ -316,6 +436,7 @@ void handleAuto() {
         if(server.hasArg("auto")) {
             String currentStatus;
             String buttonState;
+            if (debug)
             Serial.println("Button has been pressed!");
             buttonState = server.arg("auto");
 
@@ -345,7 +466,11 @@ void handleFollow() {
         if(server.hasArg("follow")) {
             String currentStatus;
             String buttonState;
-            Serial.println("Button has been pressed!");
+
+            if (debug_Level) { 
+                Serial.println("Button has been pressed!");
+            }
+
             buttonState = server.arg("follow");
 
             if(buttonState == "0") {
@@ -365,19 +490,27 @@ void handleFollow() {
 }
 
 void handleSpeed() {
-    if(server.args()>0) { // If there is an valid argument
+    if(server.args()>0) {
+        // Read argument from the browser
         if(server.hasArg("speed")) {
-            if (debug_Level > 1){
-                Serial.println(server.arg("speed").toInt());      // Log current speed
-            }
+    
+            if (debug_Level > 1)
+                Serial.println(server.arg("speed").toInt());
+
+            // Save speed values
             d_State.prevA = d_State.speedA;
             d_State.prevB = d_State.speedB;
 
             // Convert string to integer and set motor speed accordingly
             d_State.speedA = server.arg("speed").toInt();
             d_State.speedB = server.arg("speed").toInt();
+
+            // If speed slider value exceeds threshold, set speed accordingly
             if(d_State.speedA > 50 && d_State.speedB > 50) {
+
+                // But only if the value has changed from the previous value
                 if(d_State.prevA != d_State.speedA || d_State.prevB != d_State.speedB) {
+                    
                     // Set current speed values
                     analogWrite(MOTOR_A_SPEED, abs(d_State.speedA));
                     analogWrite(MOTOR_B_SPEED, abs(d_State.speedB));
@@ -386,6 +519,8 @@ void handleSpeed() {
             else {
                 handBrake();
             }
+
+            // Convert current speed to string and send it back to server
             char charBuf[5];
             sprintf(charBuf, "%d", (int)d_State.speedA);
             server.send(200, "textplane", charBuf );
@@ -396,26 +531,34 @@ void handleSpeed() {
 void updateMode() {
     String currentStatus;
     currentStatus = d_State.mode;
+
     server.send(200, "text/plane", currentStatus);
 }
 
 void updateDistance() {
-    float sensorValue = us.read();
     char charBuf[6];
-    dtostrf(sensorValue, 6, 2, charBuf); // Convert float to string
+
+    // Convert float to string
+    dtostrf(us.read(), 6, 2, charBuf); 
     server.send(200, "text/plane", charBuf);
 }
 
 void updateHumid(){
-    Serial.println((int)humidity);
+    if (debug_Level > 1)
+        Serial.println((int)humidity);
+
+    // Convert humidity from integer to string and send it to the server
     char charBuf[6];
-    sprintf(charBuf, "%d", 55);
+    sprintf(charBuf, "%d", (int)humidity);
     server.send(200, "text/plane", charBuf);
 }
 
 void updateTemp(){
-    char charBuf[6];
+    if (debug_Level > 1)
     Serial.println((int)temperature);
+
+    // Convert humidity from integer to string and send it to the server
+    char charBuf[6];
     sprintf(charBuf, "%d", (int)temperature);
     server.send(200, "text/plane", charBuf);
 }
@@ -483,6 +626,7 @@ void setup() {
     }
 
     // Handle server requests
+
     // server.on("/",HTTP_GET,handleGet); not needed right now
     server.on("/setAuto",handleAuto);
     server.on("/setFollow", handleFollow);
@@ -503,6 +647,7 @@ void setup() {
     server.serveStatic("/events.js", SPIFFS, "/events.js");
 
     // Handle events and send HTTP post code on success
+    // The success code '204' signals the server that there is no content that needs to be reloaded
     server.on("/forward", []() {
         driveForward();
         server.send(204);
@@ -538,38 +683,56 @@ void loop() {
     // Make robot aware of its current direction
     readDirection();
 
-    // Update sensor values every 5s
     int err = SimpleDHTErrSuccess;
 
+    // Update sensor values every 5s
     if(millis() > prevTime + intervall)  {
+        // Let the library to its thing
         if ((err = dht11.read(&temperature, &humidity, NULL)) != SimpleDHTErrSuccess) {
             Serial.print("Read DHT11 failed, err="); Serial.println(err);delay(1000);
             return;
         }
+        // Set time that has passed until the last intervall was reached
         prevTime = millis();
-        Serial.println(millis());
     }
         
     // Handle server
     server.handleClient();
 
-    // // Force different states
+    // Force different states
     switch(d_State.mode) {
+        // No specific mode needs to forced
         case IDLE:
             break;
+
+        // Avoid obstacles
         case AUTO:
             collisionHandling();
             break;
+
+        // Follow hand
         case FOLLOW: {
+            // Store the hands position
             int handDir = 0;
+
+            // Track down hand position
             handDir = searchHand();
+
+            // Smaller than 90 means hand is on the left
             if(handDir <= SERVO_DEFAULT){
                 turnTowardsHand(LEFT, handDir);
             }
+
+            // Bigger than 90 means hand is on the left
             else {
                 turnTowardsHand(RIGHT, handDir);
             }
+
+            // Wait 1s
             delay(1000);
+
+            // Continue driving forward
+            driveForward();
             break;
         }
         default:
