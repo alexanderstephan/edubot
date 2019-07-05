@@ -23,7 +23,7 @@
 #define MINIMUM_SPEED 300
 #define DEFAULT_SPEED 512
 #define MAX_SPEED 1023
-#define TURN_SPEED 600
+#define TURN_SPEED 500
 
 // Define servo values
 #define SERVO_DEFAULT 90
@@ -31,8 +31,8 @@
 #define SERVO_LEFT 40
 
 // Define tresholds
-#define HAND_DISTANCE 15
-#define TOO_CLOSE 4
+#define HAND_DISTANCE 18
+#define TOO_CLOSE 7
 #define MIN_DISTANCE 15
 
 // Define debug level for enabling serial output
@@ -328,6 +328,8 @@ int searchHand() {
 
             // Set servo position
             servo1.write(servoPosition);
+
+            // Still handle server requests
             server.handleClient();
 
             // Make sure servo reaches position in time
@@ -347,6 +349,8 @@ int searchHand() {
             
             // Set servo position
             servo1.write(servoPosition);
+
+            // Still handle server requests
             server.handleClient();
             
             // Make sure servo reaches position in time
@@ -361,7 +365,7 @@ int searchHand() {
                 return handPosition;
             }
         }
-    } while (distance > HAND_DISTANCE); 
+    } while (distance > HAND_DISTANCE);
     // Search while hand is not within reach
 
     // Return function type
@@ -387,24 +391,22 @@ void followHand() {
     delay(1000);
 }
 
-void turnTowardsHand(boolean Direction, int servoPos) {
-    // Start from speed 0
+void turnTowardsHand(boolean Direction, int servoPos) { 
     handBrake();
-
-    // If hand is left turn robot also left
-    if (Direction == LEFT) {
-        driveWheels(-TURN_SPEED,TURN_SPEED);
-    }
-
-    // If hand is left turn robot also left
-    else if (Direction == RIGHT) {
-        driveWheels(TURN_SPEED,-TURN_SPEED);
-    }
-    else {
-        Serial.println("Error reading direction!");
-    }
-    
     do {
+        // If hand is left turn robot also left
+        if (Direction == LEFT) {
+            driveWheels(-TURN_SPEED,TURN_SPEED);
+        }
+
+        // If hand is left turn robot also left
+        else if (Direction == RIGHT) {
+            driveWheels(TURN_SPEED,-TURN_SPEED);
+        }
+        else {
+            Serial.println("Error reading direction!");
+        }
+
         // Write servo position
         servo1.write(servoPos);
 
@@ -416,11 +418,11 @@ void turnTowardsHand(boolean Direction, int servoPos) {
             servoPos++;
         }
 
-        // If hand is on right turn servo to the left
+        // If hand is on right turn servo to the right
         else {
             servoPos--;
         } 
-        delay(25);
+        delay(15);
 
         handBrake();
     } while(servoPos != SERVO_DEFAULT);
@@ -434,12 +436,17 @@ void turnTowardsHand(boolean Direction, int servoPos) {
 void handleAuto() {
     if(server.args()>0) {
         if(server.hasArg("auto")) {
+
             String currentStatus;
             String buttonState;
-            if (debug)
-            Serial.println("Button has been pressed!");
-            buttonState = server.arg("auto");
 
+            if (debug_Level >1)
+            Serial.println("Button has been pressed!");
+
+            // Read button state from website
+            buttonState = server.arg("auto");
+            
+            // 
             if(buttonState == "0") {
                 d_State.mode = IDLE;
                 handBrake();
@@ -531,14 +538,12 @@ void handleSpeed() {
 void updateMode() {
     String currentStatus;
     currentStatus = d_State.mode;
-
     server.send(200, "text/plane", currentStatus);
 }
 
 void updateDistance() {
-    char charBuf[6];
-
     // Convert float to string
+    char charBuf[6];
     dtostrf(us.read(), 6, 2, charBuf); 
     server.send(200, "text/plane", charBuf);
 }
@@ -555,7 +560,7 @@ void updateHumid(){
 
 void updateTemp(){
     if (debug_Level > 1)
-    Serial.println((int)temperature);
+        Serial.println((int)temperature);
 
     // Convert humidity from integer to string and send it to the server
     char charBuf[6];
@@ -717,22 +722,21 @@ void loop() {
 
             // Track down hand position
             handDir = searchHand();
+            Serial.println("Hand fount at:");
+            Serial.println(handDir);
 
             // Smaller than 90 means hand is on the left
             if(handDir <= SERVO_DEFAULT){
                 turnTowardsHand(LEFT, handDir);
             }
 
-            // Bigger than 90 means hand is on the left
+            // Bigger than 90 means hand is on the right
             else {
                 turnTowardsHand(RIGHT, handDir);
             }
 
-            // Wait 1s
-            delay(1000);
-
             // Continue driving forward
-            driveForward();
+            followHand();
             break;
         }
         default:

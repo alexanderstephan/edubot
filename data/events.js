@@ -44,9 +44,9 @@ function followChanged() {
         xhttp.open("GET", "setFollow?follow=1", true);
         xhttp.send();
     }
-    else if(document.getElementById(id).value == 'ON') {
-        document.getElementById(id).style.background = '#283593';
-        document.getElementById(id).value = 'OFF';
+    else if(document.getElementById('follow').value == 'ON') {
+        document.getElementById('follow').style.background = '#283593';
+        document.getElementById('follow').value = 'OFF';
         document.getElementById('auto').style.background = '#283593';
         document.getElementById('auto').value = 'OFF';
         xhttp.open("GET", "setFollow?follow=0", true);
