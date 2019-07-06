@@ -66,7 +66,7 @@ drivingState_t d_State = {
     0,          // Speed B
     0,          // Previous speed A
     0,          // Previous speed B
-    FOLLOW      // Mode
+    IDLE      // Mode
 };
 
 // Force driving modes
@@ -636,6 +636,14 @@ void setup() {
     digitalWrite(MOTOR_A_DIR, HIGH);
     digitalWrite(MOTOR_B_DIR, HIGH);
 
+    pinMode(RED, OUTPUT);
+    pinMode(GREEN, OUTPUT);
+    pinMode(BLUE, OUTPUT);
+
+    analogWrite(RED, 255);
+    analogWrite(GREEN, 0);
+    analogWrite(BLUE, 0);
+
     // Use access point mode
     WiFi.mode(WIFI_AP);
 
@@ -724,8 +732,6 @@ void loop() {
         
     // Handle server
     server.handleClient();
-    
-    Serial.println(us.read());
 
     // Force different states
     switch(d_State.mode) {

@@ -6,7 +6,7 @@
 
     Data pins:
         BUILTIN_LED -> 16
-        D0 ->  16
+        # D0 ->  16
         # D1 ->  5
         # D2 ->  4
         # D3 ->  0
@@ -25,7 +25,10 @@
 /* Sensor pins */
 #define ECHO_PIN 12
 #define TRIG_PIN 13
-#define pinDHT11 16 
+#define pinDHT11 16
+#define RED       5
+#define GREEN     4
+#define BLUE      0
 
 /* Sensor functions */
 void getDistance();
