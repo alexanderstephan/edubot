@@ -23,7 +23,7 @@
 #define MINIMUM_SPEED 300
 #define DEFAULT_SPEED 512
 #define MAX_SPEED 1023
-#define TURN_SPEED 500
+#define TURN_SPEED 520
 
 // Define servo values
 #define SERVO_DEFAULT 90
@@ -31,15 +31,16 @@
 #define SERVO_LEFT 40
 
 // Define tresholds
-#define HAND_DISTANCE 18
-#define TOO_CLOSE 7
-#define MIN_DISTANCE 15
+#define HAND_DISTANCE 20
+#define TOO_CLOSE 0
+#define MIN_DISTANCE 20
+#define OBSTACLE_DISTANCE 15
 
 // Define debug level for enabling serial output
 #define DEBUG_LEVEL 2
 
 int debug_Level = DEBUG_LEVEL;
-int currentSpeed = 0; // Make a variable to store the current speed, speed at the start should be zero
+// int currentSpeed = 0; Make a variable to store the current speed, speed at the start should be zero
 
 float distance;       // Global variable that keeps track of the current speed
 
@@ -48,7 +49,6 @@ byte humidity = 0;
 
 unsigned long prevTime = 0;
 unsigned long intervall = 5000;
-
 
 // Initialize objects
 Servo servo1;
@@ -66,7 +66,7 @@ drivingState_t d_State = {
     0,          // Speed B
     0,          // Previous speed A
     0,          // Previous speed B
-    IDLE        // Mode
+    FOLLOW      // Mode
 };
 
 // Force driving modes
@@ -229,7 +229,7 @@ void collisionHandling() {
 
     // If ultrasonic distance is less than 10 perform a obstacle avoidance routine, else proceed driving
     if (distance > 0.1) {   // Avoid invalid readings
-        if (distance < MIN_DISTANCE) {
+        if (distance < OBSTACLE_DISTANCE) {
             // Wait if the sensor value stabilizes
 
             if(debug_Level > 1) {
@@ -310,15 +310,11 @@ void collisionHandling() {
 ----------------------------------------------------------*/
 
 int searchHand() {
-
-    distance = us.read();
-
     // Stores the position if object is measured within threshold
     int handPosition =  0;
 
     // Stop for 500ms. Probably too long
-    handBrake();
-    delay(500);
+    handBrake();                                                                                                                                                                                                                                                                                                                                                                
 
     // Move servo to the right
     initServo(SERVO_RIGHT);
@@ -329,11 +325,12 @@ int searchHand() {
             // Set servo position
             servo1.write(servoPosition);
 
-            // Still handle server requests
-            server.handleClient();
-
             // Make sure servo reaches position in time
-            delay(10);
+            delay(10); 
+
+            // Still handle server requests 
+	        server.handleClient();
+
 
             // Update sensor value
             distance = us.read();
@@ -341,7 +338,7 @@ int searchHand() {
             // Save position if the distance is within a certain threshold
             if (distance <= HAND_DISTANCE) {
                 handPosition = servoPosition;
-                return handPosition;
+		        return handPosition;
             }
         }
 
@@ -349,50 +346,29 @@ int searchHand() {
             
             // Set servo position
             servo1.write(servoPosition);
-
-            // Still handle server requests
-            server.handleClient();
-            
+             
             // Make sure servo reaches position in time
             delay(10);
 
             // Update sensor value
             distance = us.read();
+	    
+	        // Still handle server requests
+            server.handleClient();
 
             // Save position if the distance is within a certain threshold
             if (distance <= HAND_DISTANCE) {
                 handPosition = servoPosition;
-                return handPosition;
+		        return handPosition;
             }
         }
     } while (distance > HAND_DISTANCE);
     // Search while hand is not within reach
-
-    // Return function type
     return 1;
 }
 
-void followHand() {
-    // Center servo
-    initServo(SERVO_DEFAULT);
-
-    // Drive with normal speed
-    driveWheels(DEFAULT_SPEED,DEFAULT_SPEED);
-
-    do {
-        distance = us.read();
-        server.handleClient();
-        delay(10);
-    } while ((distance <= HAND_DISTANCE) && (distance >= TOO_CLOSE));
-    // Continue driving as long the hand is within a certain threshold
-    
-    // Invalid hand position so wait at least one second for now
-    handBrake();
-    delay(1000);
-}
 
 void turnTowardsHand(boolean Direction, int servoPos) { 
-    handBrake();
     do {
         // If hand is left turn robot also left
         if (Direction == LEFT) {
@@ -407,12 +383,12 @@ void turnTowardsHand(boolean Direction, int servoPos) {
             Serial.println("Error reading direction!");
         }
 
+        Serial.println("Turning towards hand");
+        // Continue handling server events while looping
+        // server.handleClient();
+        
         // Write servo position
         servo1.write(servoPos);
-
-        // Continue handling server events while looping
-        server.handleClient();
-
         // If hand is on left turn servo to the right
         if (Direction == LEFT) {
             servoPos++;
@@ -422,11 +398,59 @@ void turnTowardsHand(boolean Direction, int servoPos) {
         else {
             servoPos--;
         } 
-        delay(15);
+        delay(20);
 
         handBrake();
     } while(servoPos != SERVO_DEFAULT);
     
+    handBrake();
+}
+
+void followHand() {
+    // const int numReadings = 5;
+    // float readings[numReadings];
+    // int readIndex = 0;
+    // float totalDistance = 0;
+    // float averageDistance = 0;
+
+    // Center servo
+    initServo(SERVO_DEFAULT);
+
+    Serial.println("Following hand now!");
+
+    int handDistance = 0;
+    // // Initialize array with 0
+    // for(int thisReading = 0; readIndex < numReadings; thisReading++) {
+    // 	readings[thisReading] = 0;
+    // } 
+
+    do {
+        // totalDistance = totalDistance - readings[readIndex];
+        // readings[readIndex] = us.read();
+        // totalDistance = totalDistance + readings[readIndex];
+  
+        // if(readIndex >= numReadings) {
+        //     readIndex = 0;
+        // }
+        // else {
+        //     readIndex = readIndex + 1;
+            // }
+        handDistance = us.read();
+        Serial.println(handDistance);
+        delay(10);
+
+        driveWheels(500,500);
+        readDirection();
+        // averageDistance = totalDistance / numReadings;
+        server.handleClient();
+
+ } while ((handDistance <= HAND_DISTANCE - 3) && (handDistance >= TOO_CLOSE));
+// Continue driving as long the hand is within a certain threshold
+    Serial.println("Average distance:");
+    Serial.println(handDistance);     
+    // Invalid hand position so wait at least one second for now
+    handBrake();
+    Serial.println("Lost Hand position");
 }
 
 /* ------------------------------------------------------
@@ -436,7 +460,6 @@ void turnTowardsHand(boolean Direction, int servoPos) {
 void handleAuto() {
     if(server.args()>0) {
         if(server.hasArg("auto")) {
-
             String currentStatus;
             String buttonState;
 
@@ -454,8 +477,7 @@ void handleAuto() {
                 Serial.println("Auto turned off!");
             }
             else if(buttonState == "1") {
-                d_State.mode = AUTO;
-                Serial.println("Auto turned on!");
+                d_State.mode = AUTO; Serial.println("Auto turned on!");
             }
             else {
                 Serial.println("Error reading mode!");
@@ -620,8 +642,6 @@ void setup() {
     // Define its name and password
     WiFi.softAP(HOST, PASSWORD);
     if (debug_Level > 1) {
-        Serial.println("");
-
         // Print IP adress
         Serial.println("");
         Serial.print("Name of Access Point is:");
@@ -632,7 +652,8 @@ void setup() {
 
     // Handle server requests
 
-    // server.on("/",HTTP_GET,handleGet); not needed right now
+    // Currently not in use
+    // server.on("/",HTTP_GET,handleGet); 
     server.on("/setAuto",handleAuto);
     server.on("/setFollow", handleFollow);
     server.on("/setSpeed", handleSpeed);
@@ -703,11 +724,14 @@ void loop() {
         
     // Handle server
     server.handleClient();
+    
+    Serial.println(us.read());
 
     // Force different states
     switch(d_State.mode) {
         // No specific mode needs to forced
         case IDLE:
+            initServo(SERVO_DEFAULT);
             break;
 
         // Avoid obstacles
@@ -718,23 +742,27 @@ void loop() {
         // Follow hand
         case FOLLOW: {
             // Store the hands position
-            int handDir = 0;
+            delay(300);
+            distance = us.read();
+            delay(200);
+            if(distance > HAND_DISTANCE + 5) {
+                int handDir = 0;
+                // Track down hand position
+                handDir = searchHand();
+                Serial.println("Hand fount at:");
+                Serial.println(handDir);
 
-            // Track down hand position
-            handDir = searchHand();
-            Serial.println("Hand fount at:");
-            Serial.println(handDir);
+                // Smaller than 90 means hand is on the left
+                if(handDir <= SERVO_DEFAULT){
+                    turnTowardsHand(LEFT, handDir);
+                }
 
-            // Smaller than 90 means hand is on the left
-            if(handDir <= SERVO_DEFAULT){
-                turnTowardsHand(LEFT, handDir);
+                // Bigger than 90 means hand is on the right
+                else {
+                    turnTowardsHand(RIGHT, handDir);
+                }
             }
-
-            // Bigger than 90 means hand is on the right
-            else {
-                turnTowardsHand(RIGHT, handDir);
-            }
-
+            delay(300);
             // Continue driving forward
             followHand();
             break;
