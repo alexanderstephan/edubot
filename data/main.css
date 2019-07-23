@@ -48,9 +48,17 @@ button,#auto,#follow {
 	margin-right: 0px;
 	margin-top: 0px;
 	margin-bottom: 0px;
+	height: 60px;
+	width: 60px;
 	color: #88d1ff;
 }
+#left {
+margin-right: 30px;
+}
 
+#right {
+margin-left: 30px;
+}
 .icon {
 	display: inline-block;
 	width: 0.2em;

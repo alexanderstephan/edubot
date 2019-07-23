@@ -31,10 +31,10 @@
     <center>
         <h1 style="color: white; font-size: 30px;">Edubot</h1>
 
-        <a href="forward"><button class="button nav"><svg class="icon icon-chevron-up"><use xlink:href="#icon-chevron-up"></use></svg></button></a><br>
-        <a href="left"><button class="button nav"><svg class="icon icon-chevron-left"><use xlink:href="#icon-chevron-left"></use></svg></button></a>
-        <a href="right"><button class="button nav"><svg class="icon icon-chevron-right"><use xlink:href="#icon-chevron-right"></use></svg></button></a><br>
-        <a href="backward"><button class="button nav"><svg class="icon icon-chevron-down"><use xlink:href="#icon-chevron-down"></use></svg></button></a><br>
+        <a href="forward"><button class="button nav" id="top"><svg class="icon icon-chevron-up"><use xlink:href="#icon-chevron-up"></use></svg></button></a><br>
+        <a href="left"><button class="button nav" id="left"><svg class="icon icon-chevron-left"><use xlink:href="#icon-chevron-left"></use></svg></button></a>
+        <a href="right"><button class="button nav" id="right"><svg class="icon icon-chevron-right"><use xlink:href="#icon-chevron-right"></use></svg></button></a><br>
+        <a href="backward"><button class="button nav" id="bottom"><svg class="icon icon-chevron-down"><use xlink:href="#icon-chevron-down"></use></svg></button></a><br>
         
         <h2>Velocity:</h2><input type="range" min="0" max="1024" value="20" class="slider" id="myRange" onchange="speedChanged(this.value);"><p>
         <a href="stop"><button>Stop Engine</button></a><br>

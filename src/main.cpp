@@ -100,7 +100,6 @@ void turnServo(int degree) {
     // Start rotation from the center
     int pos = SERVO_DEFAULT;
 
-
     // Intervall length is 25ms
     unsigned long intervall = 25;
 
@@ -453,6 +452,33 @@ void followHand() {
     Serial.println("Lost Hand position");
 }
 
+void followHandling() {
+    // Store the hands position
+    delay(300);
+    distance = us.read();
+    delay(200);
+    if(distance > HAND_DISTANCE + 5) {
+        int handDir = 0;
+        // Track down hand position
+        handDir = searchHand();
+        Serial.println("Hand fount at:");
+        Serial.println(handDir);
+
+        // Smaller than 90 means hand is on the left
+        if(handDir <= SERVO_DEFAULT){
+            turnTowardsHand(LEFT, handDir);
+        }
+
+        // Bigger than 90 means hand is on the right
+        else {
+            turnTowardsHand(RIGHT, handDir);
+        }
+    }
+    delay(300);
+    // Continue driving forward
+    followHand();
+}
+
 /* ------------------------------------------------------
  Everything related to setting up the server and website
 -------------------------------------------------------*/
@@ -625,7 +651,7 @@ void setup() {
     // Initialize struct with adress
     init(&d_State);
 
-    // Set all motor pins as outout
+    // Define all motor pins as output
     pinMode(MOTOR_A_SPEED, OUTPUT);
     pinMode(MOTOR_A_DIR, OUTPUT);
 
@@ -636,10 +662,12 @@ void setup() {
     digitalWrite(MOTOR_A_DIR, HIGH);
     digitalWrite(MOTOR_B_DIR, HIGH);
 
+    // Define all RGB pins as output
     pinMode(RED, OUTPUT);
     pinMode(GREEN, OUTPUT);
     pinMode(BLUE, OUTPUT);
 
+    // Initialize RGB pins
     analogWrite(RED, 255);
     analogWrite(GREEN, 0);
     analogWrite(BLUE, 0);
@@ -658,10 +686,9 @@ void setup() {
         Serial.println(WiFi.softAPIP());
     }
 
-    // Handle server requests
+    // Declare server events
 
-    // Currently not in use
-    // server.on("/",HTTP_GET,handleGet); 
+    // Currently not in use ; server.on("/",HTTP_GET,handleGet); 
     server.on("/setAuto",handleAuto);
     server.on("/setFollow", handleFollow);
     server.on("/setSpeed", handleSpeed);
@@ -709,7 +736,6 @@ void setup() {
 
     // Start Server
     server.begin();
-
     Serial.println("HTTP server started");
 }
 
@@ -730,7 +756,7 @@ void loop() {
         prevTime = millis();
     }
         
-    // Handle server
+    // Handle server events
     server.handleClient();
 
     // Force different states
@@ -739,38 +765,13 @@ void loop() {
         case IDLE:
             initServo(SERVO_DEFAULT);
             break;
-
         // Avoid obstacles
         case AUTO:
             collisionHandling();
             break;
-
         // Follow hand
         case FOLLOW: {
-            // Store the hands position
-            delay(300);
-            distance = us.read();
-            delay(200);
-            if(distance > HAND_DISTANCE + 5) {
-                int handDir = 0;
-                // Track down hand position
-                handDir = searchHand();
-                Serial.println("Hand fount at:");
-                Serial.println(handDir);
-
-                // Smaller than 90 means hand is on the left
-                if(handDir <= SERVO_DEFAULT){
-                    turnTowardsHand(LEFT, handDir);
-                }
-
-                // Bigger than 90 means hand is on the right
-                else {
-                    turnTowardsHand(RIGHT, handDir);
-                }
-            }
-            delay(300);
-            // Continue driving forward
-            followHand();
+            followHandling();
             break;
         }
         default:
