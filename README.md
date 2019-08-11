@@ -21,7 +21,7 @@ The robot has the basic ability to be controlled manually as well as an obstacle
 - To access the control interface connect to the AP with the specified password and navigate your browser to APs IP probably `192.168.4.1`
 
 ## Wiring
-![Schematic](https://raw.githubusercontent.com/alexanderstephan/edubot/master/edubot_bb.png)
+![Schematic](https://raw.githubusercontent.com/alexanderstephan/edubot/master/edubot_wiring.png)
 
 ## Possible excercises
 - Make robot drive in a circle

@@ -37,7 +37,7 @@ void driveWheels(int valLeft, int valRight) {
         dState->speedB = valRight;
     }
     if (valLeft == 0) {
-        dState->speedB  = 0;
+        dState->speedA  = 0;
 
     }
     if (valRight == 0) {
