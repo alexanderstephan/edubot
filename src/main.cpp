@@ -406,45 +406,22 @@ void turnTowardsHand(boolean Direction, int servoPos) {
 }
 
 void followHand() {
-    // const int numReadings = 5;
-    // float readings[numReadings];
-    // int readIndex = 0;
-    // float totalDistance = 0;
-    // float averageDistance = 0;
 
-    // Center servo
     initServo(SERVO_DEFAULT);
 
     Serial.println("Following hand now!");
 
     int handDistance = 0;
-    // // Initialize array with 0
-    // for(int thisReading = 0; readIndex < numReadings; thisReading++) {
-    // 	readings[thisReading] = 0;
-    // } 
 
     do {
-        // totalDistance = totalDistance - readings[readIndex];
-        // readings[readIndex] = us.read();
-        // totalDistance = totalDistance + readings[readIndex];
-  
-        // if(readIndex >= numReadings) {
-        //     readIndex = 0;
-        // }
-        // else {
-        //     readIndex = readIndex + 1;
-            // }
         handDistance = us.read();
         Serial.println(handDistance);
         delay(10);
-
         driveWheels(500,500);
         readDirection();
-        // averageDistance = totalDistance / numReadings;
         server.handleClient();
-
- } while ((handDistance <= HAND_DISTANCE - 3) && (handDistance >= TOO_CLOSE));
-// Continue driving as long the hand is within a certain threshold
+    } while ((handDistance <= HAND_DISTANCE - 3) && (handDistance >= TOO_CLOSE));
+    // Continue driving as long the hand is within a certain threshold
     Serial.println("Average distance:");
     Serial.println(handDistance);     
     // Invalid hand position so wait at least one second for now
