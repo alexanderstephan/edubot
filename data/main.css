@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css?family=Roboto');
 html {
 	font-family: 'roboto', sans-serif;
 	text-transform: uppercase;
@@ -20,6 +19,12 @@ a {
 
 a:hover{
 	text-decoration: underline;;
+}
+
+input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
 button,#auto,#follow {
