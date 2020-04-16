@@ -17,7 +17,7 @@ a {
 	text-decoration: none;
 }
 
-a:hover{
+a:hover {
 	text-decoration: underline;;
 }
 
@@ -64,6 +64,7 @@ margin-right: 30px;
 #right {
 margin-left: 30px;
 }
+
 .icon {
 	display: inline-block;
 	width: 0.2em;
@@ -102,6 +103,7 @@ margin-left: 30px;
 	padding-bottom: 10px;
 	color: green;
 }
+
 #temperature, #distance, #humidity {
 	color: pink;
 	line-height: 40px;

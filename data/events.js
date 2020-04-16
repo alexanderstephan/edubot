@@ -2,12 +2,16 @@ $.ajaxSetup({timeout:1000});
 
 function speedChanged(speed) {
     var xhttp = new XMLHttpRequest();
+
+    if (speed == 550)
+        speed = 0;
+
     xhttp.onreadystatechange = function() {
-        if(this.readyState == 4 && this.status == 200) {
+        if (this.readyState == 4 && this.status == 200) {
             document.getElementById('myRange').value = this.responseText;
         }
     };
-    xhttp.open("GET", "setSpeed?speed="+speed, true);
+    xhttp.open("GET", "setSpeed?speed=" + speed, true);
     xhttp.send();
     // Legacy approach
     //$.get("?speed=" + speed );
@@ -16,15 +20,14 @@ function speedChanged(speed) {
 
 function autoChanged() {
     var xhttp = new XMLHttpRequest();
-    if(document.getElementById('auto').value == 'OFF') {
+    if (document.getElementById('auto').value == 'OFF') {
         document.getElementById('auto').style.background = '#FFC400';
         document.getElementById('auto').value = 'ON';
         document.getElementById('follow').style.background = '#263238';
         document.getElementById('follow').value = 'LOCKED';
         xhttp.open("GET","setAuto?auto=1",true);
         xhttp.send();
-    }
-    else if(document.getElementById('auto').value == 'ON') {
+    } else if (document.getElementById('auto').value == 'ON') {
         document.getElementById('auto').style.background = '#283593';
         document.getElementById('auto').value = 'OFF';
         document.getElementById('follow').style.background = '#283593';
@@ -36,15 +39,14 @@ function autoChanged() {
 
 function followChanged() {
     var xhttp = new XMLHttpRequest();
-    if(document.getElementById('follow').value == 'OFF') {
+    if (document.getElementById('follow').value == 'OFF') {
         document.getElementById('follow').style.background = '#FFC400';
         document.getElementById('follow').value = 'ON';
         document.getElementById('auto').style.background = '#263238';
         document.getElementById('auto').value = 'LOCKED'
         xhttp.open("GET", "setFollow?follow=1", true);
         xhttp.send();
-    }
-    else if(document.getElementById('follow').value == 'ON') {
+    } else if (document.getElementById('follow').value == 'ON') {
         document.getElementById('follow').style.background = '#283593';
         document.getElementById('follow').value = 'OFF';
         document.getElementById('auto').style.background = '#283593';
@@ -58,19 +60,17 @@ function getData() {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-            if(this.responseText == '0') {
+            if (this.responseText == '0') {
                 document.getElementById('auto').value = 'ON';
                 document.getElementById('auto').style.background = '#FFC400';
                 document.getElementById('follow').style.background = '#263238';
                 document.getElementById('follow').value = 'LOCKED';
-            }
-            else if(this.responseText == '1') {
+            } else if (this.responseText == '1') {
                 document.getElementById('follow').style.background = '#FFC400';
                 document.getElementById('follow').value = 'ON'
                 document.getElementById('auto').style.background = '#263238';
                 document.getElementById('auto').value = 'LOCKED'
-            }
-            else {
+            } else {
                 document.getElementById('auto').style.background = '#283593';
                 document.getElementById('auto').value = 'OFF';
                 document.getElementById('follow').style.background = '#283593';

@@ -1,10 +1,3 @@
-/*----------------------------------------------------------------------------------
-* NAME: Edubot
-* AUTHOR: Alexander Stephan
-* DESCRIPTION: Wirelessly controlled robot with the ability to drive autonomously
-* SPECIAL THANKS: Max W., Markus Knapp and Robotfreak
-----------------------------------------------------------------------------------*/
-
 #include <Arduino.h>
 #include <Servo.h>  // Servo library
 #include <SR04.h>   // Ultra sonic library
@@ -126,7 +119,7 @@ void turnServo(int degree) {
             // Subtract time before the next intervall
             prevTime = currentTime;
         }
-    } while(pos <= (SERVO_DEFAULT + degree) && distance > 10.0);
+    } while (pos <= (SERVO_DEFAULT + degree) && distance > 10.0);
 
     do {
         // Check if there have been any requests
@@ -146,7 +139,7 @@ void turnServo(int degree) {
             // Subtract time before the next intervall
             prevTime = currentTime;
         }
-    } while(pos >= (SERVO_DEFAULT - degree) && distance > 10.0);
+    } while (pos >= (SERVO_DEFAULT - degree) && distance > 10.0);
 }                                                                                                                   
 
 /* ------------------------------------------------------
@@ -167,10 +160,10 @@ int seekingPositionWithClosestDanger() {
     // Store the servo position that corresponds to the smallest distance
     int minServoPos = 0;
 
-    if(debug_Level > 1)
-    Serial.println("Moving servo from left to right!");
+    if (debug_Level > 1)
+        Serial.println("Moving servo from left to right!");
     
-    for(servoPos = SERVO_RIGHT; servoPos >= SERVO_LEFT; servoPos--) {
+    for (servoPos = SERVO_RIGHT; servoPos >= SERVO_LEFT; servoPos--) {
         servo1.write(servoPos);
 
         // Wait until servo position is reached
@@ -187,12 +180,12 @@ int seekingPositionWithClosestDanger() {
             minServoPos = servoPos;     
         }
     }
-    if(debug_Level > 1) {
-    servo1.write(minServoPos);
-    Serial.print("Minimale Distanz:");
-    Serial.println(minDistance);
-    Serial.print("Servo Position:");
-    Serial.println(minServoPos);
+    if (debug_Level > 1) {
+        servo1.write(minServoPos);
+        Serial.print("Minimale Distanz:");
+        Serial.println(minDistance);
+        Serial.print("Servo Position:");
+        Serial.println(minServoPos);
     }
 
     return minServoPos;
@@ -206,15 +199,11 @@ void avoidObstacle(boolean Direction) {
     // If the obstacle was detected on the left turn right
     if (Direction == LEFT) {
         driveWheels(TURN_SPEED,-TURN_SPEED);
-    }
-
-    // If the obstacle was detected on the right turn left
-    else if (Direction == RIGHT) {
+    } else if (Direction == RIGHT) {
+        // If the obstacle was detected on the right turn left
         driveWheels(-TURN_SPEED,TURN_SPEED);
-    }
-    
-    // In case of an unlikely typo during function call print error
-    else {
+    } else {
+        // In case of an unlikely typo during function call print error
         Serial.println("Error reading direction!");
     }
 }
@@ -231,7 +220,7 @@ void collisionHandling() {
         if (distance < OBSTACLE_DISTANCE) {
             // Wait if the sensor value stabilizes
 
-            if(debug_Level > 1) {
+            if (debug_Level > 1) {
                 Serial.println("Recognized potential danger!");
                 Serial.println("Seeking danger position!");
             }
@@ -239,14 +228,14 @@ void collisionHandling() {
             // Function rotates the servo and determines where the smallest distance to the obstacle is
             dangerPos = seekingPositionWithClosestDanger();
 
-            if(debug_Level > 1) {
+            if (debug_Level > 1) {
                 Serial.print("Obstacle at position ");
                 Serial.println(dangerPos);
                 Serial.println("Stopped robot!");
             }
 
             // If the above returned position is smaller than 90 the obstacle is left
-            if(dangerPos <= SERVO_DEFAULT) {
+            if (dangerPos <= SERVO_DEFAULT) {
                 if(debug_Level > 1)
                 Serial.println("Obstacle on the left!");
 
@@ -260,7 +249,7 @@ void collisionHandling() {
                 // If the obstacle is out of sight continue
             }
 
-            if(dangerPos > SERVO_DEFAULT) {
+            if (dangerPos > SERVO_DEFAULT) {
                 if(debug_Level > 1)
                 Serial.println("Obstacle on the right!");
 
@@ -320,7 +309,6 @@ int searchHand() {
 
     do {
         for (int servoPosition = SERVO_RIGHT; servoPosition >= SERVO_LEFT; servoPosition--) {
-
             // Set servo position
             servo1.write(servoPosition);
 
@@ -342,7 +330,6 @@ int searchHand() {
         }
 
         for (int servoPosition = SERVO_LEFT; servoPosition <= SERVO_RIGHT; servoPosition++) {
-            
             // Set servo position
             servo1.write(servoPosition);
              
@@ -362,23 +349,20 @@ int searchHand() {
             }
         }
     } while (distance > HAND_DISTANCE);
+
     // Search while hand is not within reach
     return 1;
 }
 
-
 void turnTowardsHand(boolean Direction, int servoPos) { 
     do {
-        // If hand is left turn robot also left
         if (Direction == LEFT) {
+            // If hand is left turn robot also left
             driveWheels(-TURN_SPEED,TURN_SPEED);
-        }
-
-        // If hand is left turn robot also left
-        else if (Direction == RIGHT) {
+        } else if (Direction == RIGHT) {  
+            // If hand is left turn robot also left
             driveWheels(TURN_SPEED,-TURN_SPEED);
-        }
-        else {
+        } else {
             Serial.println("Error reading direction!");
         }
 
@@ -434,7 +418,7 @@ void followHandling() {
     delay(300);
     distance = us.read();
     delay(200);
-    if(distance > HAND_DISTANCE + 5) {
+    if (distance > HAND_DISTANCE + 5) {
         int handDir = 0;
         // Track down hand position
         handDir = searchHand();
@@ -442,12 +426,9 @@ void followHandling() {
         Serial.println(handDir);
 
         // Smaller than 90 means hand is on the left
-        if(handDir <= SERVO_DEFAULT){
+        if (handDir <= SERVO_DEFAULT){
             turnTowardsHand(LEFT, handDir);
-        }
-
-        // Bigger than 90 means hand is on the right
-        else {
+        } else {
             turnTowardsHand(RIGHT, handDir);
         }
     }
@@ -461,8 +442,8 @@ void followHandling() {
 -------------------------------------------------------*/
 
 void handleAuto() {
-    if(server.args()>0) {
-        if(server.hasArg("auto")) {
+    if (server.args()>0) {
+        if (server.hasArg("auto")) {
             String currentStatus;
             String buttonState;
 
@@ -472,17 +453,14 @@ void handleAuto() {
             // Read button state from website
             buttonState = server.arg("auto");
             
-            // 
-            if(buttonState == "0") {
+            if (buttonState == "0") {
                 d_State.mode = IDLE;
                 handBrake();
                 servo1.write(SERVO_DEFAULT);
                 Serial.println("Auto turned off!");
-            }
-            else if(buttonState == "1") {
+            } else if(buttonState == "1") {
                 d_State.mode = AUTO; Serial.println("Auto turned on!");
-            }
-            else {
+            } else {
                 Serial.println("Error reading mode!");
             }
 
@@ -494,8 +472,8 @@ void handleAuto() {
 }
 
 void handleFollow() {
-    if(server.args()>0) {
-        if(server.hasArg("follow")) {
+    if (server.args()>0) {
+        if (server.hasArg("follow")) {
             String currentStatus;
             String buttonState;
 
@@ -522,9 +500,9 @@ void handleFollow() {
 }
 
 void handleSpeed() {
-    if(server.args()>0) {
+    if (server.args()>0) {
         // Read argument from the browser
-        if(server.hasArg("speed")) {
+        if (server.hasArg("speed")) {
     
             if (debug_Level > 1)
                 Serial.println(server.arg("speed").toInt());
@@ -538,17 +516,16 @@ void handleSpeed() {
             d_State.speedB = server.arg("speed").toInt();
 
             // If speed slider value exceeds threshold, set speed accordingly
-            if(d_State.speedA > 50 && d_State.speedB > 50) {
+            if (d_State.speedA > 50 && d_State.speedB > 50) {
 
                 // But only if the value has changed from the previous value
-                if(d_State.prevA != d_State.speedA || d_State.prevB != d_State.speedB) {
+                if (d_State.prevA != d_State.speedA || d_State.prevB != d_State.speedB) {
                     
                     // Set current speed values
                     analogWrite(MOTOR_A_SPEED, abs(d_State.speedA));
                     analogWrite(MOTOR_B_SPEED, abs(d_State.speedB));
                 }
-            }
-            else {
+            } else {
                 handBrake();
             }
 
@@ -573,7 +550,7 @@ void updateDistance() {
     server.send(200, "text/plane", charBuf);
 }
 
-void updateHumid(){
+void updateHumid() {
     if (debug_Level > 1)
         Serial.println((int)humidity);
 
@@ -583,7 +560,7 @@ void updateHumid(){
     server.send(200, "text/plane", charBuf);
 }
 
-void updateTemp(){
+void updateTemp() {
     if (debug_Level > 1)
         Serial.println((int)temperature);
 
@@ -618,6 +595,9 @@ void handleNotFound() {
 void setup() {
     // Initialize serial port
     Serial.begin(115200);
+
+    // Increase PWM frequency in order to fix motor whine
+    analogWriteFreq(18000);
 
     // Start file system
     SPIFFS.begin();
@@ -654,6 +634,7 @@ void setup() {
 
     // Define its name and password
     WiFi.softAP(HOST, PASSWORD);
+
     if (debug_Level > 1) {
         // Print IP adress
         Serial.println("");
@@ -664,7 +645,6 @@ void setup() {
     }
 
     // Declare server events
-
     // Currently not in use ; server.on("/",HTTP_GET,handleGet); 
     server.on("/setAuto",handleAuto);
     server.on("/setFollow", handleFollow);
@@ -674,8 +654,6 @@ void setup() {
     server.on("/readDistance", updateDistance);
     server.on("/readTemp", updateTemp);
     server.on("/readHumid", updateHumid);
-
-    // Tell server what to do in case of an error
     server.onNotFound(handleNotFound);
 
     // Serve local files to server
@@ -717,27 +695,30 @@ void setup() {
 }
 
 void loop() {
-    // Make robot aware of its current direction
     readDirection();
+    
+    // Make robot aware of its current direction
 
     int err = SimpleDHTErrSuccess;
 
     // Update sensor values every 5s
-    if(millis() > prevTime + intervall)  {
+    if (millis() > prevTime + intervall) {
         // Let the library to its thing
         if ((err = dht11.read(&temperature, &humidity, NULL)) != SimpleDHTErrSuccess) {
-            Serial.print("Read DHT11 failed, err="); Serial.println(err);delay(1000);
+            Serial.print("Read DHT11 failed, err="); 
+            Serial.println(err);
+            delay(1000);
             return;
         }
         // Set time that has passed until the last intervall was reached
         prevTime = millis();
     }
-        
+
     // Handle server events
     server.handleClient();
 
     // Force different states
-    switch(d_State.mode) {
+    switch (d_State.mode) {
         // No specific mode needs to forced
         case IDLE:
             initServo(SERVO_DEFAULT);

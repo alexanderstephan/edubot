@@ -9,7 +9,7 @@ int debugLevel = DEBUG_LEVEL;
 
 drivingState_t *dState = NULL;  // We need to work the the pointer of the struct
 
-void init(drivingState_t *state){
+void init(drivingState_t *state) {
     dState=state;
 }
 
@@ -21,28 +21,28 @@ void init(drivingState_t *state){
 // Maybe this needs refactoring
 void driveWheels(int valLeft, int valRight) {
     if (valLeft < 0) {
+        digitalWrite(MOTOR_A_DIR, HIGH);
+        dState->speedA = valLeft;
+    } else {
         digitalWrite(MOTOR_A_DIR, LOW);
         dState->speedA = valLeft;
     }
-    else {
-        digitalWrite(MOTOR_A_DIR, HIGH);
-        dState->speedA = valLeft;
-    }
+
     if (valRight < 0) {
-        digitalWrite(MOTOR_B_DIR, LOW);
-        dState->speedB = valRight;
-    } 
-    else {
         digitalWrite(MOTOR_B_DIR, HIGH);
         dState->speedB = valRight;
+    } else {
+        digitalWrite(MOTOR_B_DIR, LOW);
+        dState->speedB = valRight;
     }
+
     if (valLeft == 0) {
         dState->speedA  = 0;
 
-    }
-    if (valRight == 0) {
+    } else if (valRight == 0) {
         dState->speedB = 0;
     }
+
     analogWrite(MOTOR_A_SPEED, abs(dState->speedA));
     analogWrite(MOTOR_B_SPEED, abs(dState->speedB));
 }
@@ -51,29 +51,24 @@ void driveWheels(int valLeft, int valRight) {
 void readDirection() {
     if (dState->speedA > 0 && dState->speedB > 0) { // If both are positive the robot is driving forward
         dState->dir = FORWARD;
-         if (debugLevel > 3) {
+         if (debugLevel > 3)
             Serial.println("Forward");
-        }
-    }
-    else if (dState->speedA < 0  && dState->speedB < 0) { // If both are negative the robot is driving backward
+    } else if (dState->speedA < 0  && dState->speedB < 0) { // If both are negative the robot is driving backward
         dState->dir = BACKWARD;
         if (debugLevel > 3) {
             Serial.println("Backward");
         }
-    }
-    else if (dState->speedA > 0 && dState->speedB < 0) { // If the left wheel is turning forward and right is moving backward, robot does a right turn
+    } else if (dState->speedA > 0 && dState->speedB < 0) { // If the left wheel is turning forward and right is moving backward, robot does a right turn
         dState->dir = RIGHT;
         if (debugLevel > 3) {
             Serial.println("Right");
         }
-    }
-    else if (dState->speedA < 0 && dState->speedB > 0) { // If the left wheel is turning backward and right is moving forward, robot does a right turn
+    } else if (dState->speedA < 0 && dState->speedB > 0) { // If the left wheel is turning backward and right is moving forward, robot does a right turn
         dState->dir = LEFT;
         if (debugLevel > 3) {
             Serial.println("Left");
         }
-    }
-    else if (dState->speedA < 50 && dState->speedB < 50) { // If both speeds are zero, there is none
+    } else if (dState->speedA < 50 && dState->speedB < 50) { // If both speeds are zero, there is none
         dState->dir = NONE;
     }
 }
@@ -84,14 +79,14 @@ void readDirection() {
 
 void driveForward() {
     driveWheels(abs(dState->speedA),abs(dState->speedB));   // Otherwise set the absolute speed value
-    if(debugLevel > 1) {
+    if (debugLevel > 1) {
         Serial.println("Driving forward");
     }
 }
 
 void driveBackward() {
     driveWheels(-abs(dState->speedA),-abs(dState->speedB)); // Otherwise set the negative absolute speed values
-    if(debugLevel > 1) {
+    if (debugLevel > 1) {
         Serial.println("Driving backwards");
     }
 }
@@ -102,7 +97,7 @@ void handBrake() {
     dState->prevB = dState->speedB;
     driveWheels(0,0);
 
-    if( debugLevel > 1) {
+    if (debugLevel > 1) {
         Serial.println("Robot is stopping...");
     }
 }
@@ -122,15 +117,15 @@ void turnDir(direction_t steerDir, int time) {
     dState->prevA = dState->speedA;
     dState->prevB = dState->speedB;
     
-    if(dState->dir == FORWARD) {
-        if(steerDir == LEFT) {
-            if( debugLevel > 1) {
+    if (dState->dir == FORWARD) {
+        if (steerDir == LEFT) {
+            if ( debugLevel > 1) {
                 Serial.println("Turning left");
             }
             driveWheels((TURN_COEFF*(dState->speedA)), dState->speedB);   // Change orientation of the left wheel
             delay(time);    // Wait for the turn
             driveWheels(dState->prevA, dState->speedB);
-        } else if(steerDir == RIGHT) {
+        } else if (steerDir == RIGHT) {
             if( debugLevel > 1) {
                 Serial.println("Turning right");
             }
@@ -138,15 +133,15 @@ void turnDir(direction_t steerDir, int time) {
             delay(time);    // Wait for the turn
             driveWheels(dState->speedA, dState->prevA);          // Restore speeds
         }        
-    } else if(dState->dir == BACKWARD) {
-        if(steerDir == LEFT) {
+    } else if (dState->dir == BACKWARD) {
+        if (steerDir == LEFT) {
             if( debugLevel > 1) {
                 Serial.println("Turning left");
             }
             driveWheels((TURN_COEFF*(dState->speedA)), dState->speedB);   // Change orientation of the left wheel
             delay(time);    // Wait for the turn
             driveWheels(dState->prevA, dState->speedB);
-        } else if(steerDir == RIGHT) {
+        } else if (steerDir == RIGHT) {
             if( debugLevel > 1) {
                 Serial.println("Turning right");
             }
