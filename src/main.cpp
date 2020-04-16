@@ -64,12 +64,11 @@ drivingState_t d_State = {
 
 // Force driving modes
 void setMode(drivingMode_t alteredMode) {
-    if(alteredMode == d_State.mode) {   // On: AUTO == AUTO
+    if (alteredMode == d_State.mode) {   // On: AUTO == AUTO
         handBrake();
         servo1.write(SERVO_DEFAULT);
         d_State.mode = IDLE;
-    }
-    else {
+    } else {
         d_State.mode = alteredMode;     // Off: alteredMode = IDLE
                                         // d.State.mode = AUTO;
     }
@@ -218,8 +217,6 @@ void collisionHandling() {
     // If ultrasonic distance is less than 10 perform a obstacle avoidance routine, else proceed driving
     if (distance > 0.1) {   // Avoid invalid readings
         if (distance < OBSTACLE_DISTANCE) {
-            // Wait if the sensor value stabilizes
-
             if (debug_Level > 1) {
                 Serial.println("Recognized potential danger!");
                 Serial.println("Seeking danger position!");
@@ -250,7 +247,7 @@ void collisionHandling() {
             }
 
             if (dangerPos > SERVO_DEFAULT) {
-                if(debug_Level > 1)
+                if (debug_Level > 1)
                 Serial.println("Obstacle on the right!");
 
                 // Turn away from obstacle. In this case turn right
@@ -265,13 +262,13 @@ void collisionHandling() {
             // Wait a little bit so the function can't be called too often
             delay(200);
 
-            if(debug_Level > 1)
+            if (debug_Level > 1)
             Serial.println("Avoided obstacle!");
 
         // Continue driving while searching for obstacles
         } else if (distance > 10.0 && distance <= 20.0) {
-            if(debug_Level > 1)
-            Serial.println("More or less out of sight!");
+            if (debug_Level > 1)
+                Serial.println("More or less out of sight!");
 
             // Set speed to default
             driveWheels(DEFAULT_SPEED, DEFAULT_SPEED);
@@ -390,7 +387,6 @@ void turnTowardsHand(boolean Direction, int servoPos) {
 }
 
 void followHand() {
-
     initServo(SERVO_DEFAULT);
 
     Serial.println("Following hand now!");
@@ -483,12 +479,11 @@ void handleFollow() {
 
             buttonState = server.arg("follow");
 
-            if(buttonState == "0") {
+            if (buttonState == "0") {
                 d_State.mode = IDLE;
                 handBrake();
                 Serial.println("Auto turned off!");
-            }
-            else {
+            } else {
                 d_State.mode = FOLLOW;
                 Serial.println("Auto turned on!");
             }
@@ -503,7 +498,6 @@ void handleSpeed() {
     if (server.args()>0) {
         // Read argument from the browser
         if (server.hasArg("speed")) {
-    
             if (debug_Level > 1)
                 Serial.println(server.arg("speed").toInt());
 
