@@ -677,7 +677,7 @@ void setup() {
     server.on("/right",[]() {
         turnDir(RIGHT,300);
         server.send(204);
-     });
+    });
     
     server.on("/backward", []() {
         driveBackward();
@@ -698,7 +698,6 @@ void loop() {
     readDirection();
     
     // Make robot aware of its current direction
-
     int err = SimpleDHTErrSuccess;
 
     // Update sensor values every 5s
