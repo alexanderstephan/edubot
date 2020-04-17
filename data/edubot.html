@@ -30,33 +30,31 @@
             </symbol>
         </defs>
     </svg>
-    <center>
-        <h1 style="color: white; font-size: 30px;">Edubot</h1>
+    <div class="interface">
+        <!-- <h1 style="color: white; font-size: 30px;">Edubot</h1> -->
 
         <a href="forward"><button class="button nav" id="top"><svg class="icon icon-chevron-up"><use xlink:href="#icon-chevron-up"></use></svg></button></a><br>
         <a href="left"><button class="button nav" id="left"><svg class="icon icon-chevron-left"><use xlink:href="#icon-chevron-left"></use></svg></button></a>
         <a href="right"><button class="button nav" id="right"><svg class="icon icon-chevron-right"><use xlink:href="#icon-chevron-right"></use></svg></button></a><br>
         <a href="backward"><button class="button nav" id="bottom"><svg class="icon icon-chevron-down"><use xlink:href="#icon-chevron-down"></use></svg></button></a><br>
 
-        <h2>Velocity:</h2><input type="range" min="550" max="1024" value="1024" step="50" class="slider" id="myRange" onchange="speedChanged(    this.value);"><p>
-        <a href="stop"><button>Stop Engine</button></a><br>
+        <h2>💨 Velocity</h2><input type="range" min="550" max="1024" value="550" step="50" class="slider" id="myRange" onchange="speedChanged(    this.value);"><p>
 
-        <h2 style="font-size: 20px;">Auto</h2>
+        <input type="button" style="background-color:#283593;" id="active" onClick="isActive();" value = "START"></a><br>
+
+        <h2>🤖 Auto</h2>
 
         <input type="button" style="background-color:#283593;" id="auto" onClick="autoChanged();" value = "OFF" ></a><br>
 
-        <h2 style="font-size: 20px;">Follow</h2>
+        <h2>✋ Follow</h2>
         <input type="button" style="background-color:#283593;" id="follow" onClick="followChanged();" value = "OFF"></a><br>
-        <h2 style="font-size: 20px;">Sensors</h2>
+        <h2>🌡️ Sensors</h2>
         <div id="sensors">
-            Obstacle: <span id="distance">-/-</span> cm<br>
-            Temperature: <span id="temperature">-/-</span> °C<br>
-            Humidity: <span id="humidity">-/-</span> %
+            Obstacle:   <span id="distance">-/-</span> cm<br>
+            Temperature:    <span id="temperature">-/-</span> °C<br>
+            Humidity:   <span id="humidity">-/-</span> %
         </div>
         <p>
-        <div id="logo">
-        <a href="https://github.com/alexanderstephan">© Alexander Stephan 2019</a>
-        </div>
-    </center>
+    </div>
 </body>
 </html>

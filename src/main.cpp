@@ -422,13 +422,14 @@ void followHandling() {
         Serial.println(handDir);
 
         // Smaller than 90 means hand is on the left
-        if (handDir <= SERVO_DEFAULT){
+        if (handDir <= SERVO_DEFAULT) {
             turnTowardsHand(LEFT, handDir);
         } else {
             turnTowardsHand(RIGHT, handDir);
         }
     }
     delay(300);
+
     // Continue driving forward
     followHand();
 }
@@ -437,14 +438,28 @@ void followHandling() {
  Everything related to setting up the server and website
 -------------------------------------------------------*/
 
+void handleActive() {
+    if (server.args() > 0) {
+        if (server.hasArg("active")) {
+            String currentStatus = server.arg("active");
+            // To-Do: Make robot self aware here
+            if (currentStatus == "0") {
+                handBrake();
+            } else {
+                handBrake();
+            }
+        }
+    }
+}
+
 void handleAuto() {
-    if (server.args()>0) {
+    if (server.args() > 0) {
         if (server.hasArg("auto")) {
             String currentStatus;
             String buttonState;
 
-            if (debug_Level >1)
-            Serial.println("Button has been pressed!");
+            if (debug_Level > 1)
+                Serial.println("Button has been pressed!");
 
             // Read button state from website
             buttonState = server.arg("auto");
@@ -643,6 +658,7 @@ void setup() {
     server.on("/setAuto",handleAuto);
     server.on("/setFollow", handleFollow);
     server.on("/setSpeed", handleSpeed);
+    server.on("/setActive", handleActive);
 
     server.on("/readMode", updateMode);
     server.on("/readDistance", updateDistance);
@@ -689,6 +705,7 @@ void setup() {
 }
 
 void loop() {
+    /*
     readDirection();
     
     // Make robot aware of its current direction
@@ -706,9 +723,11 @@ void loop() {
         // Set time that has passed until the last intervall was reached
         prevTime = millis();
     }
+    */
 
     // Handle server events
     server.handleClient();
+    /*
 
     // Force different states
     switch (d_State.mode) {
@@ -716,17 +735,15 @@ void loop() {
         case IDLE:
             initServo(SERVO_DEFAULT);
             break;
-        // Avoid obstacles
         case AUTO:
             collisionHandling();
             break;
-        // Follow hand
-        case FOLLOW: {
+        case FOLLOW:
             followHandling();
             break;
-        }
         default:
             Serial.println("Unregistered Mode!");
         break;
     }
+    */
 }

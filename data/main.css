@@ -1,10 +1,11 @@
 html {
 	font-family: 'roboto', sans-serif;
 	text-transform: uppercase;
+	font-size: 15px;
 }
 
 body {
-	background-color: #53a0cc;
+	background-color: #252d38;
 	color: #F2F3F4;
 }
 
@@ -27,42 +28,41 @@ input {
   appearance: none;
 }
 
-button,#auto,#follow {
-	background-color: #283593;
+button,#auto,#follow,#active {
+	background-color: #34a04b;
 	border: none;
 	color: white;
 	padding: 10px 15px;
 	text-align: center;
-	font-size: 16px;
-	font-weight: 350;
+	font-size: 20px;
+	font-weight: 335;
 	text-decoration: none;
 	display: inline-block;
-	text-transform: uppercase;
 	margin-left: 10px;
 	margin-right: 10px;
 	margin-top: 10px;
 	margin-bottom: 10px;
-	height: 70px;
+	height: 60px;
 	width: 160px;
 }
 
 .nav {
-	padding: 10px 10px;
+	padding: 20px 20px;
 	background-color:rgba(0,0,0,0);
 	margin-left: 0px;
 	margin-right: 0px;
 	margin-top: 0px;
 	margin-bottom: 0px;
-	height: 60px;
-	width: 60px;
-	color: #88d1ff;
+	height: 80px;
+	width: 80px;
+	color: #fffaf0;
 }
 #left {
-margin-right: 30px;
+	margin-right: 35px;
 }
 
 #right {
-margin-left: 30px;
+	margin-left: 35px;
 }
 
 .icon {
@@ -72,31 +72,28 @@ margin-left: 30px;
 	stroke-width: 0;
 	stroke: currentColor;
 	fill: currentColor;
-	font-size: 250px;
-
+	font-size: 235px;
 }
 
+/* To-Do: Combine classes */
 .icon-chevron-right {
-	width: 30px;
-	height:30px;
+	width: 35px;
+	height: 35px;
 }
 
 .icon-chevron-left {
-	width: 30px;
-	height:30px;
+	width: 35px;
+	height: 35px;
 }
 
 .icon-chevron-up {
-	width: 30px;
-	height:30px;
-	margin-bottom: 30px;
+	width: 35px;
+	height: 35px;
 }
 
 .icon-chevron-down {
-	margin-top: 20px;
-	margin-bottom: 20px;
-	width: 30px;
-	height:30px;
+	width: 35px;
+	height:35px;
 }
 
 #logo {
@@ -107,4 +104,13 @@ margin-left: 30px;
 #temperature, #distance, #humidity {
 	color: pink;
 	line-height: 40px;
+}
+
+.interface {
+	text-align: center;
+}
+
+#sensors {
+	font-size: 12px;
+	color: rgb(196, 230, 235);
 }

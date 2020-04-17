@@ -16,44 +16,58 @@ function speedChanged(speed) {
     // Legacy approach
     //$.get("?speed=" + speed );
 }
-// Needs to be refactored by using a css class
 
+function isActive() {
+    var xhttp = new XMLHttpRequest();
+    if (document.getElementById('active').value == 'START') {
+        document.getElementById('active').style.background = '#e91e63';
+        document.getElementById('active').value = 'STOP';
+        xhttp.open("GET", "setActive?active=1", true);
+    } else {
+        document.getElementById('active').style.background = '#283593';
+        document.getElementById('active').value = 'START';
+        xhttp.open("GET", "setActive?active=1", true);
+    }
+    xhttp.send();
+}
+
+// Needs to be refactored by using a css class
 function autoChanged() {
     var xhttp = new XMLHttpRequest();
+
     if (document.getElementById('auto').value == 'OFF') {
         document.getElementById('auto').style.background = '#FFC400';
         document.getElementById('auto').value = 'ON';
         document.getElementById('follow').style.background = '#263238';
         document.getElementById('follow').value = 'LOCKED';
         xhttp.open("GET","setAuto?auto=1",true);
-        xhttp.send();
-    } else if (document.getElementById('auto').value == 'ON') {
+    } else {
         document.getElementById('auto').style.background = '#283593';
         document.getElementById('auto').value = 'OFF';
         document.getElementById('follow').style.background = '#283593';
         document.getElementById('follow').value = 'OFF';
         xhttp.open("GET","setAuto?auto=0",true);
-        xhttp.send();
     }
+    xhttp.send();
 }
 
 function followChanged() {
     var xhttp = new XMLHttpRequest();
+
     if (document.getElementById('follow').value == 'OFF') {
         document.getElementById('follow').style.background = '#FFC400';
         document.getElementById('follow').value = 'ON';
         document.getElementById('auto').style.background = '#263238';
         document.getElementById('auto').value = 'LOCKED'
         xhttp.open("GET", "setFollow?follow=1", true);
-        xhttp.send();
-    } else if (document.getElementById('follow').value == 'ON') {
+    } else {
         document.getElementById('follow').style.background = '#283593';
         document.getElementById('follow').value = 'OFF';
         document.getElementById('auto').style.background = '#283593';
         document.getElementById('auto').value = 'OFF';
         xhttp.open("GET", "setFollow?follow=0", true);
-        xhttp.send();
     }
+    xhttp.send();
 }
 
 function getData() {
