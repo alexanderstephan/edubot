@@ -7,7 +7,7 @@
 4. [Excercises](#possible-excercises)
 
 ## Overview
-I started the project as a project paper for my school. The acrylic chassis is from watterott.com and has a nice corresponding book from Markus Knapp called 'Building Robots With Arduino'. 
+I started the project as a project paper for my school. The acrylic chassis is from watterott.com and has a nice corresponding book from Markus Knapp called *Building Robots With Arduino*. 
 The robot has the basic ability to be controlled manually as well as an obstacle avoidance mode. Everything is controlled via a simple web page which can be accessed by connecting to the ESP8266s local network. 
 
 ## How To Build
