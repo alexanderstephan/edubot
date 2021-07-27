@@ -5,7 +5,6 @@
 2. [How To Build](#how-to-build)
 3. [Wiring](#Wiring)
 4. [Excercises](#possible-excercises)
-5. [To Do List](#to-do-list)
 
 ## Overview
 I started the project as a project paper for my school. The acrylic chassis is from watterott.com and has a nice corresponding book from Markus Knapp called 'Building Robots With Arduino'. 
